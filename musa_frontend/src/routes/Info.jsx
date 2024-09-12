@@ -202,7 +202,7 @@ function Info() {
                                 <td onClick={() => productoClickeado(producto.codigo)}><NumericFormat prefix='$' displayType='text' value={producto.venta} thousandSeparator="." decimalSeparator=',' /></td>
                                 <td onClick={() => productoClickeado(producto.codigo)}>{producto.cantidad}</td>
                                 <td onClick={() => productoClickeado(producto.codigo)} className="foto-fav">
-                                    <img width="40px" src={`http://192.168.0.64:4000/${producto.foto}`} alt="" />
+                                    <img width="40px" src={`${IP}/${producto.foto}`} alt="" />
                                     <span className="fav" style={{ color: producto.favorito && 'red' }}>
                                         <i className={producto.favorito ? "bi bi-heart-fill" : ""}></i>
                                     </span>
@@ -225,7 +225,7 @@ function Info() {
                         <div className="modal-body">
                             <span className="close" onClick={closeModal}><i className="bi bi-x-circle-fill"></i></span>
                             <div className="modal-image">
-                                <img src={`http://192.168.0.64:4000/${producto.foto}`} alt={producto.nombre} />
+                                <img src={`${IP}/${producto.foto}`} alt={producto.nombre} />
                             </div>
                             <div className="modal-info">
                                 <div className='nombre-anio'>

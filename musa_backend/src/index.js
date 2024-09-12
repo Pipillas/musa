@@ -55,6 +55,14 @@ const upload = multer({ storage: storage });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware para servir los archivos estáticos de la carpeta dist
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Servir la aplicación principal (index.html) para cualquier ruta
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+});
+
 // Sirviendo la carpeta 'uploads' de forma estática
 app.use('/uploads', express.static('uploads'));
 
@@ -748,6 +756,8 @@ io.on('connection', (socket) => {
 
 });
 
-server.listen(4000, () => {
-    console.log('Servidor corriendo en el puerto 4000');
+const PORT = 80;
+
+server.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

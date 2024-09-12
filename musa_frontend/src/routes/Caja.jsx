@@ -13,13 +13,8 @@ function Caja() {
         formaPago: null,
         tipoOperacion: null
     });
-    const [descripcion, setDescripcion] = useState('');
-    const [monto, setMonto] = useState(0);
-    const [nombre, setNombre] = useState('');
     const [nombres, setNombres] = useState([]);
     const [totales, setTotales] = useState({});
-    const [formaPago, setFormaPago] = useState(null); // Estado para "EFECTIVO" y "DIGITAL"
-    const [tipoOperacion, setTipoOperacion] = useState(null); // Estado para "APORTE", "RETIRO" y "GASTO"
     const [operaciones, setOperaciones] = useState([]);
 
     const [page, setPage] = useState(1);

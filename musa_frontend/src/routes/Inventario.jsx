@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NumericFormat } from 'react-number-format';
 
-import { socket } from '../main';
+import { IP, socket } from '../main';
 
 function Inventario() {
 
@@ -145,7 +145,7 @@ function Inventario() {
             formDataToSend.append(key, formData[key]);
         }
         try {
-            const response = await fetch('http://192.168.0.64:4000/upload', {
+            const response = await fetch(`${IP}`/upload, {
                 method: 'POST',
                 body: formDataToSend
             });
@@ -413,7 +413,7 @@ E
                                     <td>{producto.origen}</td>
                                     <td><NumericFormat prefix='$' displayType='text' value={producto.venta} thousandSeparator="." decimalSeparator=',' /></td>
                                     <td>{producto.cantidad}</td>
-                                    <td><img width="40px" src={`http://192.168.0.64:4000/${producto.foto}`} alt="" /></td>
+                                    <td><img width="40px" src={`${IP}/${producto.foto}`} alt="" /></td>
                                     <td onClick={() => imprimir(producto.codigo)} className='editar'><i className="bi bi-printer-fill"></i></td>
                                     <td onClick={() => agregarStock(producto)} className="editar"><i className="bi bi-plus-circle"></i></td>
                                     <td onClick={() => editar(producto)} className='editar'><i className="bi bi-pencil-square"></i></td>
