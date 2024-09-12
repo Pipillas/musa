@@ -71,8 +71,8 @@ function App() {
     <Router>
       <NavBar />
       <Routes>
-        <Route path="/" element={<Inventario />} />
-        <Route path="/info" element={<Info />} />
+        <Route path="/" element={<Info />} />
+        <Route path="/inventario" element={<Inventario />} />
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/caja" element={<Caja />} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { socket } from '../main';
+import { IP, socket } from '../main';
 import { NumericFormat, PatternFormat } from 'react-number-format';
 
 const LIMITE_EFECTIVO = 172244;
@@ -151,7 +151,7 @@ const ProductoItem = ({ producto, borrarCarrito, handleCantidad, handleInputChan
         </div>
         <div className="producto-item">
             <div className="producto-imagen">
-                <img src={`http://192.168.0.64:4000/${producto.foto}`} alt={producto.nombre} />
+                <img src={`http://${IP}/${producto.foto}`} alt={producto.nombre} />
             </div>
             <div className="producto-detalle">
                 <div className="producto-detalle-div">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { socket } from '../main';
+import { IP, socket } from '../main';
 import { NumericFormat } from 'react-number-format';
 import moment from 'moment-timezone';
 
@@ -90,7 +90,7 @@ function Ventas() {
                     {
                         ventas?.length > 0 ? (
                             ventas.map((venta, index) => (
-                                <tr onClick={() => { if (venta.numeroFactura) { window.open(`http://192.168.0.64:4000/facturas/${venta.stringNumeroFactura}.pdf`) } }} key={index}>
+                                <tr onClick={() => { if (venta.numeroFactura) { window.open(`${IP}/facturas/${venta.stringNumeroFactura}.pdf`) } }} key={index}>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{new Date(venta.createdAt).toLocaleString('es-AR', {
                                         year: 'numeric',
                                         month: '2-digit',

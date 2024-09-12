@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { socket } from '../main';
+import { socket, IP } from '../main';
 import { NumericFormat } from 'react-number-format';
 
 function Info() {

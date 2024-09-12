@@ -145,7 +145,7 @@ function Inventario() {
             formDataToSend.append(key, formData[key]);
         }
         try {
-            const response = await fetch(`${IP}`/upload, {
+            const response = await fetch(`${IP}/upload`, {
                 method: 'POST',
                 body: formDataToSend
             });
