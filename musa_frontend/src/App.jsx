@@ -31,7 +31,7 @@ function App() {
   useEffect(() => {
     // Obtener el code desde localStorage
     const code = localStorage.getItem('code');
-    
+
     if (code) {
       // Si hay un código en localStorage, lo envía al servidor
       requestInicio(code);
@@ -49,8 +49,8 @@ function App() {
 
   const handleRequestCode = () => {
     // Abre un prompt para solicitar el código al usuario
-    const newCode = prompt("Ingrese el código para acceder:");
-    
+    const newCode = window.prompt("Ingrese el código para acceder:");
+
     if (newCode) {
       // Guarda el nuevo código en localStorage
       localStorage.setItem('code', newCode);
