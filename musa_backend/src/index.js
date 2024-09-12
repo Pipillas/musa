@@ -58,15 +58,15 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware para servir los archivos estáticos de la carpeta dist
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Servir la aplicación principal (index.html) para cualquier ruta
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-});
-
 // Sirviendo la carpeta 'uploads' de forma estática
 app.use('/uploads', express.static('uploads'));
 
 app.use('/facturas', express.static('src/facturas'));
+
+// Servir la aplicación principal (index.html) para cualquier ruta
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+});
 
 app.post('/upload', upload.single('foto'), async (req, res) => {
     const formData = req.body;
