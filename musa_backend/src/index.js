@@ -60,7 +60,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Servir la aplicación principal (index.html) para cualquier ruta
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+    res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
 
 // Sirviendo la carpeta 'uploads' de forma estática
@@ -752,8 +752,13 @@ io.on('connection', (socket) => {
             socket.emit('error', { message: 'Error al obtener las ventas y sumar los montos.' });
         }
     });
-
-
+    socket.on('request-inicio', (code) => {
+        if (code === '0510') {
+            socket.emit('response-inicio', true);
+        } else {
+            socket.emit('response-inicio', false);
+        }
+    });
 });
 
 const PORT = 80;

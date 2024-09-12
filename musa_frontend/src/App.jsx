@@ -12,11 +12,10 @@ import { socket } from "./main";
 
 function App() {
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Para manejar la espera del servidor
 
   // Función que envía el código al servidor
   const requestInicio = (code) => {
-    socket.emit('request-inicio', { code });
+    socket.emit('request-inicio', code);
 
     socket.on('response-inicio', (response) => {
       if (response === true) {
@@ -24,7 +23,6 @@ function App() {
       } else {
         setIsAuthorized(false);
       }
-      setIsLoading(false);
     });
   };
 
@@ -37,7 +35,6 @@ function App() {
       requestInicio(code);
     } else {
       // Si no hay código en localStorage, no se autoriza
-      setIsLoading(false);
       setIsAuthorized(false);
     }
 
@@ -55,15 +52,9 @@ function App() {
       // Guarda el nuevo código en localStorage
       localStorage.setItem('code', newCode);
       // Vuelve a enviar la solicitud con el nuevo código
-      setIsLoading(true); // Reinicia el estado de carga
       requestInicio(newCode);
     }
   };
-
-  if (isLoading) {
-    // Muestra un indicador de carga mientras se espera la respuesta
-    return <div>Loading...</div>;
-  }
 
   if (!isAuthorized) {
     // Si no está autorizado, pide el código
