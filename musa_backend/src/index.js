@@ -712,6 +712,40 @@ io.on('connection', (socket) => {
             socket.emit('error', { message: 'Error retrieving operations', error });
         }
     });
+    socket.on('request-tipo-operacion', async (tipo) => {
+        const operaciones = await Operacion.find({ tipoOperacion: tipo }).sort({ createdAt: -1 });
+        socket.emit('response-tipo-operacion', operaciones);
+    });
+    socket.on('request-facturado', async (mes) => {
+        try {
+            // Filtrar las ventas por el mes exacto (comparando las primeras 7 posiciones de la fecha)
+            const ventas = await Venta.find({
+                fecha: {
+                    $regex: `^${mes}` // Filtrar donde la fecha empiece con el valor de 'mes' (YYYY-MM)
+                }
+            });
+
+            let totalFacturado = 0;
+            let totalNoFacturado = 0;
+
+            ventas.forEach((venta) => {
+                if (venta.notaCredito) {
+                    return; // Si es nota de crédito, se salta a la siguiente iteración
+                }
+                if (venta.tipoFactura === 'A' || venta.tipoFactura === 'B') {
+                    totalFacturado += venta.monto;
+                } else {
+                    totalNoFacturado += venta.monto;
+                }
+            });
+            socket.emit('response-facturado', { totalFacturado, totalNoFacturado });
+        } catch (error) {
+            console.error('Error al obtener las ventas y sumar los montos:', error);
+            socket.emit('error', { message: 'Error al obtener las ventas y sumar los montos.' });
+        }
+    });
+
+
 });
 
 server.listen(4000, () => {

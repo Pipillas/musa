@@ -860,6 +860,28 @@ button:active {
     scale: 0.95;
 }
 
+.select-estadisticas {
+    text-align: center;
+    background-color: #007bff;
+    margin: 10px;
+    color: white;
+    font-size: 18px;
+    border: none;
+    padding: 5px;
+    outline: none;
+    border-radius: 2px;
+}
+
+.div-select-estadisticas {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: #007bff;
+    ;
+}
+
+.table-estadisticas {}
+
 @media (max-width: 768px) {
     .modal-content {
         flex-direction: column;
