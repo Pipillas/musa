@@ -100,7 +100,8 @@ body,
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
     padding: 5px;
     border-radius: 5px;
@@ -135,7 +136,7 @@ body,
     background-color: #0056b3;
 }
 
-.form-group button {
+.generar-codigo {
     width: 100%;
     padding: 5px;
     background-color: #28a745;
@@ -146,7 +147,7 @@ body,
     font-size: 16px;
 }
 
-.form-group button:hover {
+.generar-codigo:hover {
     background-color: #218838;
 }
 
@@ -880,7 +881,56 @@ button:active {
     ;
 }
 
-.table-estadisticas {}
+.rojo {
+    background-color: rgb(218, 48, 48) !important;
+    color: white !important;
+    border-radius: 50%;
+}
+
+.amarillo {
+    background-color: rgb(207, 218, 48) !important;
+    color: white !important;
+    border-radius: 50%;
+}
+
+.verde {
+    background-color: rgb(48, 218, 62) !important;
+    color: white !important;
+    border-radius: 50%;
+}
+
+.react-datepicker-wrapper {
+    width: 100%;
+}
+
+.cuadrado-rojo {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    background-color: rgb(218, 48, 48) !important;
+    border-radius: 5px;
+    padding: 5px;
+    color: white;
+}
+
+.cuadrado-amarillo {
+    position: absolute;
+    left: 45px;
+    bottom: 5px;
+    background-color: rgb(207, 218, 48) !important;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.cuadrado-rojo:hover {
+    cursor: pointer;
+    background-color: rgb(220, 26, 26) !important;
+}
+
+.cuadrado-amarillo:hover {
+    cursor: pointer;
+    background-color: rgb(194, 220, 26) !important;
+}
 
 @media (max-width: 768px) {
     .modal-content {

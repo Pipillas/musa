@@ -9,8 +9,10 @@ import Ventas from "./routes/Ventas";
 import Caja from './routes/Caja';
 
 import { socket } from "./main";
+import Reservas from './routes/Reservas';
 
 function App() {
+  const [firstRender, setFirstRender] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   // Función que envía el código al servidor
@@ -23,6 +25,7 @@ function App() {
       } else {
         setIsAuthorized(false);
       }
+      setFirstRender(true);
     });
   };
 
@@ -30,13 +33,7 @@ function App() {
     // Obtener el code desde localStorage
     const code = localStorage.getItem('code');
 
-    if (code) {
-      // Si hay un código en localStorage, lo envía al servidor
-      requestInicio(code);
-    } else {
-      // Si no hay código en localStorage, no se autoriza
-      setIsAuthorized(false);
-    }
+    requestInicio(code);
 
     // Limpiar el evento cuando el componente se desmonte
     return () => {
@@ -54,6 +51,10 @@ function App() {
       // Vuelve a enviar la solicitud con el nuevo código
       requestInicio(newCode);
     }
+  };
+
+  if (!firstRender) {
+    return <div></div>
   };
 
   if (!isAuthorized) {
@@ -77,6 +78,7 @@ function App() {
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/caja" element={<Caja />} />
         <Route path="/estadisticas" element={<Estadisticas />} />
+        <Route path="/reservas" element={<Reservas />} />
       </Routes>
     </Router>
   );

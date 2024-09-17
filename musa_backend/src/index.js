@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 const Product = require('./models/productModel');
 const Venta = require('./models/venta');
 const Operacion = require('./models/operacion');
+const Turno = require('./models/turno');
 
 const AfipService = require('./AfipService');
 const afipService = new AfipService({ CUIT: 20418588897 });
@@ -29,7 +30,7 @@ const io = socketIo(server, {
 });
 
 // Conectar a MongoDB
-mongoose.connect('mongodb://localhost:27017/inventario')
+mongoose.connect('mongodb://127.0.0.1:27017/inventario')
     .then(() => console.log('Conectado a MongoDB'))
     .catch(err => console.error('Error al conectar a MongoDB:', err));
 
@@ -759,9 +760,32 @@ io.on('connection', (socket) => {
             socket.emit('response-inicio', false);
         }
     });
+    socket.on('guardar-turno', async (turno) => {
+        turno.fecha = turno.fecha.split('T')[0];
+        await Turno.create(turno);
+        io.emit('cambios');
+    });
+    socket.on('request-turnos', async () => {
+        const turnos = await Turno.find().sort({ createdAt: -1 });
+        socket.emit('response-turnos', turnos);
+    });
+    socket.on('request-fechas-turnos', async (turno) => {
+        const turnosOcupados = await Turno.find({ turno });
+        socket.emit('response-fechas-turnos', turnosOcupados);
+    });
+    socket.on('request-cantidad', () => {
+        let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
+        socket.emit('response-cantidad', cantidades);
+    });
+    socket.on('cambiar-cantidad-color', (color, cantidad) => {
+        let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
+        cantidades[color] = parseFloat(cantidad);
+        fs.writeFileSync(path.join(__dirname, 'cantidad_colores.json'), JSON.stringify(cantidades));
+        io.emit('cambios');
+    });
 });
 
-const PORT = 80;
+const PORT = 5000;
 
 server.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);

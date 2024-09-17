@@ -263,7 +263,7 @@ E
                                 onChange={handleChange}
                                 autoComplete='off'
                             />
-                            <button type="button" onClick={generateEAN13}>GENERAR CODIGO</button>
+                            <button className="generar-codigo" type="button" onClick={generateEAN13}>GENERAR CODIGO</button>
                         </div>
                     </div>
                     <div className="form-group">
@@ -363,7 +363,7 @@ E
                         />
                     </div>
                     <div className="form-group">
-                        <button type="submit">Guardar</button>
+                        <button className='generar-codigo' type="submit">Guardar</button>
                     </div>
                 </form>
             </div>
