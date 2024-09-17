@@ -20,7 +20,6 @@ const NavBar = () => {
                     <li><a href="/inventario">INVENTARIO</a></li>
                     <li><a href="/caja">CAJA</a></li>
                     <li><a href="/estadisticas">ESTADISTICAS</a></li>
-                    <li><a href="/degustacion">DEGUSTACION</a></li>
                     <li><a href="/reservas">RESERVAS</a></li>
                 </ul>
             </div>
