@@ -91,11 +91,17 @@ function Reservas() {
     };
 
     const editar = (t) => {
-        const fecha = new Date(`${t.fecha}T21:00:00-03:00`).toString();
+        const fecha = new Date(`${t.fecha}T00:00:00-03:00`);
         setTurno({
             ...t,
             fecha,
         });
+    };
+
+    const deleteTurno = (t) => {
+        if (window.confirm(`¿Estas seguro que quieres borrar el turno de ${t.nombre}?`)) {
+            socket.emit('borrar-turno', t._id);
+        };
     };
 
     useEffect(() => {
@@ -224,6 +230,7 @@ function Reservas() {
                                 <th>Observaciones</th>
                                 <th></th>
                                 <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -239,6 +246,9 @@ function Reservas() {
                                     </td>
                                     <td className="editar">
                                         <i className="bi bi-cash-coin"></i>
+                                    </td>
+                                    <td onClick={() => deleteTurno(turno)} className="editar">
+                                        <i className="bi bi-trash3-fill"></i>
                                     </td>
                                 </tr>
                             ))}
