@@ -234,7 +234,7 @@ E
         const cantidad = window.prompt(`CANTIDAD A SUMAR\nCodigo: ${producto.codigo}\nNombre: ${producto.nombre}`);
         if (cantidad && cantidad > 0) {
             socket.emit('agregar-stock', producto._id, cantidad);
-        }
+        };
     };
 
     const handlePageChange = (newPage) => {

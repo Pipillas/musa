@@ -98,6 +98,13 @@ function Reservas() {
         });
     };
 
+    const vender = (t) => {
+        const cantidad = window.prompt(`Escriba el precio`);
+        if (cantidad) {
+
+        };
+    };
+
     const deleteTurno = (t) => {
         if (window.confirm(`¿Estas seguro que quieres borrar el turno de ${t.nombre}?`)) {
             socket.emit('borrar-turno', t._id);
@@ -228,6 +235,7 @@ function Reservas() {
                                 <th>Nombre</th>
                                 <th>Cantidad</th>
                                 <th>Observaciones</th>
+                                <th>Cobrado</th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -241,10 +249,11 @@ function Reservas() {
                                     <td>{turno.nombre}</td>
                                     <td>{turno.cantidad}</td>
                                     <td>{turno.observaciones}</td>
+                                    <td>{turno.cobrado}</td>
                                     <td onClick={() => editar(turno)} className='editar'>
                                         <i className="bi bi-pencil-square"></i>
                                     </td>
-                                    <td className="editar">
+                                    <td onClick={() => vender(turno)} className="editar">
                                         <i className="bi bi-cash-coin"></i>
                                     </td>
                                     <td onClick={() => deleteTurno(turno)} className="editar">
