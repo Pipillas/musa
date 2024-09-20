@@ -216,6 +216,9 @@ function Reservas() {
                                     <td>{turno.nombre}</td>
                                     <td>{turno.cantidad}</td>
                                     <td>{turno.observaciones}</td>
+                                    <td>
+                                        <i className="bi bi-cash-coin"></i>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
