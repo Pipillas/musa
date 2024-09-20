@@ -783,6 +783,7 @@ io.on('connection', (socket) => {
     });
     socket.on('borrar-turno', async (id) => {
         await Turno.findByIdAndDelete(id);
+        io.emit('cambios');
     });
     socket.on('cambiar-cantidad-color', (color, cantidad) => {
         let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
