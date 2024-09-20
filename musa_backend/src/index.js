@@ -761,8 +761,12 @@ io.on('connection', (socket) => {
         }
     });
     socket.on('guardar-turno', async (turno) => {
-        turno.fecha = turno.fecha.split('T')[0];
-        await Turno.create(turno);
+        if (turno._id) {
+            await Turno.findByIdAndUpdate(turno._id, { turno });
+        } else {
+            turno.fecha = turno.fecha.split('T')[0];
+            await Turno.create(turno);
+        }
         io.emit('cambios');
     });
     socket.on('request-turnos', async () => {

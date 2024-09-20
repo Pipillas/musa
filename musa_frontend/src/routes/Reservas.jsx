@@ -39,6 +39,14 @@ function Reservas() {
                 ...prev,
                 [e.target.name]: numericValue,
             }));
+        } else if (e.target.name === 'nombre') {
+            const capitalizedValue = e.target.value.replace(/\b\w+/g, (word) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            );
+            setTurno(prev => ({
+                ...prev,
+                [e.target.name]: capitalizedValue,
+            }));
         } else {
             setTurno(prev => ({ ...prev, [e.target.name]: e.target.value }));
         }
@@ -80,7 +88,15 @@ function Reservas() {
         socket.emit('request-turnos');
         socket.emit('request-fechas-turnos', t);
         socket.emit('request-cantidad');
-    }
+    };
+
+    const editar = (t) => {
+        const fecha = new Date(`${t.fecha}T21:00:00-03:00`).toString();
+        setTurno({
+            ...t,
+            fecha,
+        });
+    };
 
     useEffect(() => {
         socket.on('cambios', () => fetchTurnos(turno.turno));
@@ -206,6 +222,8 @@ function Reservas() {
                                 <th>Nombre</th>
                                 <th>Cantidad</th>
                                 <th>Observaciones</th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -216,7 +234,10 @@ function Reservas() {
                                     <td>{turno.nombre}</td>
                                     <td>{turno.cantidad}</td>
                                     <td>{turno.observaciones}</td>
-                                    <td>
+                                    <td onClick={() => editar(turno)} className='editar'>
+                                        <i className="bi bi-pencil-square"></i>
+                                    </td>
+                                    <td className="editar">
                                         <i className="bi bi-cash-coin"></i>
                                     </td>
                                 </tr>
