@@ -781,6 +781,9 @@ io.on('connection', (socket) => {
         let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
         socket.emit('response-cantidad', cantidades);
     });
+    socket.on('borrar-turno', async (id) => {
+        await Turno.findByIdAndDelete(id);
+    });
     socket.on('cambiar-cantidad-color', (color, cantidad) => {
         let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
         cantidades[color] = parseFloat(cantidad);
