@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from "react-datepicker";
+import { NumericFormat } from 'react-number-format';
 import { socket } from '../main';
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -18,10 +19,21 @@ function Reservas() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
-
+    const [turnoClicked, setTurnoClicked] = useState({
+        fecha: null,
+        turno: 'AFTER OFFICE',
+        nombre: '',
+        cantidad: '',
+        observaciones: '',
+    });
+    const [turnoData, setTurnoData] = useState({
+        cobrado: 0,
+        formaDeCobro: 'EFECTIVO',
+        facturado: false,
+    });
     const [turnosOcupados, setTurnosOcupados] = useState([]);
-
     const [cantidad, setCantidad] = useState(12);
+    const [openModal, setOpenModal] = useState(false);
 
     const handleKeyDown = (e) => {
         if (e.target.name !== 'observaciones') {
@@ -98,17 +110,32 @@ function Reservas() {
         });
     };
 
-    const vender = (t) => {
-        const cantidad = window.prompt(`Escriba el precio`);
-        if (cantidad) {
-
-        };
+    const vender = () => {
+        socket.emit('cobrar-turno', turnoClicked._id, turnoData);
+        setOpenModal(false);
     };
 
     const deleteTurno = (t) => {
         if (window.confirm(`¿Estas seguro que quieres borrar el turno de ${t.nombre}?`)) {
             socket.emit('borrar-turno', t._id);
         };
+    };
+
+    const changeHandler = (value) => {
+        setTurnoData(prev => ({
+            ...prev,
+            cobrado: value,
+        }));
+    };
+
+    const turnoClickeado = (t) => {
+        setTurnoClicked(t);
+        setTurnoData({
+            cobrado: 0,
+            formaDeCobro: 'EFECTIVO',
+            facturado: false,
+        });
+        setOpenModal(true);
     };
 
     useEffect(() => {
@@ -249,11 +276,11 @@ function Reservas() {
                                     <td>{turno.nombre}</td>
                                     <td>{turno.cantidad}</td>
                                     <td>{turno.observaciones}</td>
-                                    <td>{turno.cobrado}</td>
+                                    <td>{!turno.cobrado ? '$0' : <NumericFormat prefix='$' displayType='text' value={turno.cobrado} thousandSeparator="." decimalSeparator=',' />}</td>
                                     <td onClick={() => editar(turno)} className='editar'>
                                         <i className="bi bi-pencil-square"></i>
                                     </td>
-                                    <td onClick={() => vender(turno)} className="editar">
+                                    <td onClick={() => turnoClickeado(turno)} className="editar">
                                         <i className="bi bi-cash-coin"></i>
                                     </td>
                                     <td onClick={() => deleteTurno(turno)} className="editar">
@@ -265,6 +292,36 @@ function Reservas() {
                     </table>
                 </div>
             </div>
+            {
+                openModal && <div className="modal" tabIndex="-1">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">COBRAR TURNO - {turnoClicked.nombre}</h5>
+                            </div>
+                            <div className="modal-body">
+                                <div>
+                                    <select value={turnoData.formaDeCobro} onChange={e => setTurnoData(prev => ({ ...prev, formaDeCobro: e.target.value }))} name="formapago" id="formapago">
+                                        <option value="EFECTIVO">EFECTIVO</option>
+                                        <option value="DIGITAL">DIGITAL</option>
+                                    </select>
+                                </div>
+                                <div className="checkbox-turno">
+                                    <span>FACTURA</span>
+                                    <input onChange={e => setTurnoData(prev => ({ ...prev, facturado: e.target.checked }))} checked={turnoData.facturado} type="checkbox" />
+                                </div>
+                                <div>
+                                    <NumericFormat onValueChange={(e) => changeHandler(e.floatValue)} className='input-turno' prefix='$' value={turnoData.cobrado} thousandSeparator="." decimalSeparator=',' />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button onClick={() => setOpenModal(false)} type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button onClick={() => vender()} type="button" className="btn btn-primary">Guardar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     );
 }
