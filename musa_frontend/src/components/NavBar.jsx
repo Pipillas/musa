@@ -4,7 +4,7 @@ import logo from '../assets/musa.jpg'; // Ajusta la ruta según la ubicación de
 
 const NavBar = () => {
     return (
-        <nav className="navbar">
+        <nav className="navbar-mio">
             <div className="navbar-left">
                 <div onClick={() => window.location.href = "/"} className="navbar-logo">
                     <img className='logo-nav' src={logo} alt="MUSA Logo" />
