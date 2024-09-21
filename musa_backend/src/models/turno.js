@@ -6,6 +6,9 @@ const turno = new mongoose.Schema({
     nombre: { type: String },
     cantidad: { type: Number },
     observaciones: { type: String },
+    cobrado: { type: Number },
+    formaDeCobro: { type: String },
+    facturado: { type: Boolean },
 }, { timestamps: true });
 
 const Turno = mongoose.model('Turno', turno);

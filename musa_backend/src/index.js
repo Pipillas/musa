@@ -477,6 +477,7 @@ io.on('connection', (socket) => {
                 };
                 await Venta.create(venta);
             } else if (datosCompra.factura === 'B') {
+                let data_factura;
                 if (datosCompra.dni) {
                     data_factura = await afipService.facturaB(totalVenta, datosCompra.dni);
                 } else {
@@ -783,6 +784,33 @@ io.on('connection', (socket) => {
     });
     socket.on('borrar-turno', async (id) => {
         await Turno.findByIdAndDelete(id);
+        io.emit('cambios');
+    });
+    socket.on('cobrar-turno', async (id, turnoData) => {
+        let turno = await Turno.findById(id);
+        turno.cobrado = (turno.cobrado || 0) + parseFloat(turnoData.cobrado);
+        turno.facturado = turnoData.facturado;
+        turno.formaDeCobro = turnoData.formaDeCobro;
+        await turno.save();
+        let data_factura = '';
+        if (turnoData.facturado) {
+            data_factura = await afipService.facturaB(totalVenta, 0);
+        }
+        let data = {};
+        data.factura = 'B';
+        data.numeroComprobante = data_factura.numeroComprobante;
+        data.puntoDeVenta = afipService.ptoVta;
+        data.cuit_afip = afipService.CUIT;
+        data.precio = turnoData.cobrado;
+        data.CAE = data_factura.CAE;
+        data.vtoCAE = data_factura.vtoCAE;
+        data.tipoDoc = data_factura.docTipo;
+        data.productosCarrito = [{ nombre: "CATA" }];
+        await imprimirTicket(data);
+        await Venta.create({
+            formaPago: turnoData.formaDeCobro,
+
+        });
         io.emit('cambios');
     });
     socket.on('cambiar-cantidad-color', (color, cantidad) => {
