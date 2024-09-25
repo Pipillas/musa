@@ -279,7 +279,13 @@ tr:hover td {
 
 .paginacion {
     display: flex;
+    align-items: center;
     gap: 5px;
+}
+
+.paginacion button {
+    padding: 5px;
+    border: 1px solid black;
 }
 
 .tabla-container-info {

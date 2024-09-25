@@ -9,6 +9,8 @@ const Carrito = () => {
     const [productos, setProductos] = useState([]);
     const [total, setTotal] = useState(0);
 
+    const [inputBuffer, setInputBuffer] = useState('');
+
     const [formaPago, setFormaPago] = useState(null);
     const [factura, setFactura] = useState(null);
 
@@ -66,6 +68,24 @@ const Carrito = () => {
         return true;
     }, [productos, pedirCuit, cuit, pedirData, dni, nombre, domicilio]);
 
+    const handleGlobalKeyDown = (e) => {
+        setInputBuffer(prevBuffer => {
+            if (e.key === 'Enter') {
+                console.log('Enviando código al backend:', prevBuffer);
+                socket.emit('add-carrito', prevBuffer);
+                return '';
+            }
+            const newBuffer = prevBuffer + e.key;
+            console.log(newBuffer);
+            return newBuffer;
+        });
+        /*
+        setTimeout(() => {
+            setInputBuffer('');
+        }, 3000);
+        */
+    };
+
     useEffect(() => {
         if (formaPago) {
             const limite = formaPago === 'EFECTIVO' ? LIMITE_EFECTIVO : LIMITE_DIGITAL;
@@ -95,12 +115,14 @@ const Carrito = () => {
             setDomicilio('');
         });
         fetchProductosCarrito();
+        document.addEventListener('keydown', handleGlobalKeyDown);
         return () => {
             socket.off('cambios', fetchProductosCarrito);
             socket.off('error-cuit-invalido');
             socket.off('error-no-cuit');
             socket.off('compra-finalizada')
             socket.off('productos-carrito', setProductos);
+            document.removeEventListener('keydown', handleGlobalKeyDown);
         };
     }, [fetchProductosCarrito]);
 
@@ -151,7 +173,7 @@ const ProductoItem = ({ producto, borrarCarrito, handleCantidad, handleInputChan
         </div>
         <div className="producto-item">
             <div className="producto-imagen">
-                <img src={`http://${IP}/${producto.foto}`} alt={producto.nombre} />
+                <img src={`${IP}/${producto.foto}`} alt={producto.nombre} />
             </div>
             <div className="producto-detalle">
                 <div className="producto-detalle-div">

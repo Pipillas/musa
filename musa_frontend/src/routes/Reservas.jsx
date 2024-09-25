@@ -96,8 +96,8 @@ function Reservas() {
         socket.emit('cambiar-cantidad-color', color, cantidad);
     };
 
-    const fetchTurnos = (t) => {
-        socket.emit('request-turnos');
+    const fetchTurnos = (t, s, p) => {
+        socket.emit('request-turnos', s, p);
         socket.emit('request-fechas-turnos', t);
         socket.emit('request-cantidad');
     };
@@ -139,24 +139,25 @@ function Reservas() {
     };
 
     useEffect(() => {
-        socket.on('cambios', () => fetchTurnos(turno.turno));
+        socket.on('cambios', () => fetchTurnos(turno.turno, search, page));
         socket.on('response-fechas-turnos', to => {
             setTurnosOcupados(to);
         });
-        socket.on('response-turnos', (turn) => {
-            setTurnos(turn);
+        socket.on('response-turnos', (data) => {
+            setTurnos(data.turnos);
+            setTotalPages(data.totalPages);
         });
         socket.on('response-cantidad', cant => {
             setCantidad(cant);
         });
-        fetchTurnos(turno.turno);
+        fetchTurnos(turno.turno, search, page);
         return () => {
             socket.off('cambios');
             socket.off('response-fechas-turnos')
             socket.off('response-turnos');
             socket.off('response-cantidad');
         };
-    }, [turno]);
+    }, [turno, page, search]);
 
     return (
         <div className="inventario-container">
