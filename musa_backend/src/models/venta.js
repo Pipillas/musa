@@ -14,7 +14,8 @@ const venta = new mongoose.Schema({
     localidad: { type: String },
     provincia: { type: String },
     notaCredito: { type: Boolean },
-    fecha: { type: String }
+    fecha: { type: String },
+    idTurno: { type: String },
 }, { timestamps: true });
 
 const Product = mongoose.model('Venta', venta);

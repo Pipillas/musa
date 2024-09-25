@@ -9,12 +9,12 @@ class AfipService {
         this.CUIT = CUIT;
 
         this.conf = {
-            prod: false,
+            prod: true,
             debug: false,
         };
 
-        this.pem = fs.readFileSync(path.join(__dirname, 'cert', 'musatest.crt'), 'utf8');
-        this.key = fs.readFileSync(path.join(__dirname, 'cert', 'keytest.key'), 'utf8');
+        this.pem = fs.readFileSync(path.join(__dirname, 'cert', 'musaprodcert.crt'), 'utf8');
+        this.key = fs.readFileSync(path.join(__dirname, 'cert', 'musaprodkey.key'), 'utf8');
 
         this.wsfe = null;
         this.wspci = null;
@@ -90,6 +90,7 @@ class AfipService {
         const { importe_total, importe_gravado, importe_iva } = this.calculateImportes(monto);
         const factura = this.buildFactura(CbteTipo, cuit, ultimoAutorizado, fecha, importe_total, importe_gravado, importe_iva);
         const response = await this.wsfe.FECAESolicitar(factura);
+        console.dir(response, { depth: null });
         return {
             CAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAE,
             vtoCAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAEFchVto,
@@ -106,6 +107,7 @@ class AfipService {
         const docTipo = docNro !== 0 ? 96 : 99;
         const factura = this.buildFactura(CbteTipo, docNro, ultimoAutorizado, fecha, importe_total, importe_gravado, importe_iva, docTipo);
         const response = await this.wsfe.FECAESolicitar(factura);
+        console.dir(response, { depth: null });
         return {
             CAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAE,
             vtoCAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAEFchVto,
@@ -125,6 +127,7 @@ class AfipService {
             Nro: facturaNumero,
         });
         const response = await this.wsfe.FECAESolicitar(factura);
+        console.dir(response, { depth: null });
         return {
             CAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAE,
             vtoCAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAEFchVto,
@@ -146,6 +149,7 @@ class AfipService {
             Nro: facturaNumero,
         });
         const response = await this.wsfe.FECAESolicitar(factura);
+        console.dir(response, { depth: null });
         return {
             CAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAE,
             vtoCAE: response.FECAESolicitarResult.FeDetResp.FECAEDetResponse[0].CAEFchVto,

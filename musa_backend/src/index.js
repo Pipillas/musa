@@ -199,6 +199,7 @@ async function imprimirTicket(data) {
     currentY = doc.y;
     doc.text("DESCRIPCION", 0, currentY, { align: "left" });
     doc.text('IVA%', 135, currentY);
+    console.dir(data.productosCarrito, { depth: null });
     data.productosCarrito.forEach(producto => {
         doc.x = 0;
         currentY = doc.y;
@@ -423,17 +424,16 @@ io.on('connection', (socket) => {
                 let data = {};
                 let persona;
                 try {
-                    //persona = await afipService.getPersona(datosCompra.cuit);
+                    persona = await afipService.getPersona(datosCompra.cuit);
                 } catch (error) {
                     socket.emit('error-cuit-invalido');
                     return;
                 }
-                /*
                 if (persona.personaReturn.errorConstancia) {
                     socket.emit('error-no-cuit');
                     return;
                 }
-                */
+                /*
                 persona = {
                     personaReturn: {
                         datosGenerales: {
@@ -446,6 +446,7 @@ io.on('connection', (socket) => {
                         },
                     }
                 }
+                */
                 data.cuit = datosCompra.cuit;
                 data.factura = datosCompra.factura;
                 data.razonSocial = persona.personaReturn.datosGenerales.razonSocial;
@@ -542,7 +543,6 @@ io.on('connection', (socket) => {
             const query = {
                 ...(fecha ? { fecha: fecha } : {})
             };
-
             const ventas = await Venta.find(query)
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * pageSize)
@@ -564,7 +564,6 @@ io.on('connection', (socket) => {
     });
     socket.on('nota-credito', async (venta) => {
         let data;
-
         if (venta.tipoFactura === 'A') {
             // Nota de crédito tipo A
             data = await afipService.notaCreditoA(venta.monto, venta.cuit, venta.numeroFactura);
@@ -601,17 +600,26 @@ io.on('connection', (socket) => {
                 productosCarrito: venta.productos,
                 notaCredito: true
             };
+            if (venta.idTurno) {
+                data.productosCarrito = [{ nombre: 'RESERVA', carritoCantidad: 1, venta: venta.monto }]
+                const turno = await Turno.findById(venta.idTurno);
+                if (turno) {
+                    const nuevoCobrado = turno.cobrado - venta.monto;
+                    await Turno.findByIdAndUpdate(venta.idTurno, { cobrado: nuevoCobrado });
+                }
+            }
         }
-
         // Imprimir ticket y actualizar la venta
         await imprimirTicket(data);
         await Venta.findByIdAndUpdate(venta._id, { notaCredito: true });
-        data.productosCarrito.forEach(async (producto) => {
-            await Product.findByIdAndUpdate(
-                producto._id,
-                { $inc: { cantidad: producto.carritoCantidad } }
-            );
-        });
+        if (!venta.idTurno) {
+            data.productosCarrito.forEach(async (producto) => {
+                await Product.findByIdAndUpdate(
+                    producto._id,
+                    { $inc: { cantidad: producto.carritoCantidad } }
+                );
+            });
+        }
         // Emitir cambios
         io.emit('cambios');
     });
@@ -640,7 +648,6 @@ io.on('connection', (socket) => {
                 }
             }
         ]);
-
         const totalDigitalResult = await Venta.aggregate([
             {
                 $match: {
@@ -655,10 +662,8 @@ io.on('connection', (socket) => {
                 }
             }
         ]);
-
         let efectivo = totalEfectivoResult.length > 0 ? totalEfectivoResult[0].total : 0;
         let digital = totalDigitalResult.length > 0 ? totalDigitalResult[0].total : 0;
-
         const operaciones = await Operacion.find();
         operaciones.map(operacion => {
             if (operacion.formaPago === 'EFECTIVO') {
@@ -667,12 +672,10 @@ io.on('connection', (socket) => {
                 digital += operacion.monto;
             }
         });
-
         const totales = {
             efectivo,
             digital
         };
-
         socket.emit('response-totales', totales);
     });
     socket.on('request-nombres', async () => {
@@ -724,7 +727,24 @@ io.on('connection', (socket) => {
     });
     socket.on('request-tipo-operacion', async (tipo) => {
         const operaciones = await Operacion.find({ tipoOperacion: tipo }).sort({ createdAt: -1 });
-        socket.emit('response-tipo-operacion', operaciones);
+        // Crear un mapa para agrupar las operaciones por nombre
+        let operacionesPorNombre = {};
+        operaciones.forEach((operacion) => {
+            if (operacionesPorNombre[operacion.nombre]) {
+                // Si ya existe el nombre, sumamos el monto
+                operacionesPorNombre[operacion.nombre].monto += operacion.monto;
+            } else {
+                // Si no existe el nombre, lo inicializamos
+                operacionesPorNombre[operacion.nombre] = {
+                    ...operacion._doc, // Copiamos todos los datos de la operación actual
+                    monto: operacion.monto // Inicializamos el monto con el valor actual
+                };
+            }
+        });
+        // Convertir el mapa en un array de objetos
+        let operacionesAgrupadas = Object.values(operacionesPorNombre);
+        // Emitir el array procesado
+        socket.emit('response-tipo-operacion', operacionesAgrupadas);
     });
     socket.on('request-facturado', async (mes) => {
         try {
@@ -770,13 +790,61 @@ io.on('connection', (socket) => {
         }
         io.emit('cambios');
     });
-    socket.on('request-turnos', async () => {
-        const turnos = await Turno.find().sort({ createdAt: -1 });
-        socket.emit('response-turnos', turnos);
+    socket.on('request-turnos', async (search, page) => {
+        const pageSize = 50;  // Definir tamaño de página
+        const pageNumber = page || 1;
+        let filter = {};
+        // Si hay un término de búsqueda, creamos un regex para aplicarlo a los campos
+        if (search) {
+            const searchRegex = { $regex: search, $options: 'i' };  // 'i' para ignorar mayúsculas/minúsculas
+            filter.$or = [
+                { nombre: searchRegex },
+                { fecha: searchRegex },
+            ];
+        }
+        try {
+            // Realizar la búsqueda con paginación
+            const turnos = await Turno
+                .find(filter)
+                .sort({ createdAt: -1 })
+                .skip((pageNumber - 1) * pageSize)
+                .limit(pageSize);
+            // Contar el número total de documentos que coinciden con el filtro
+            const totalTurnos = await Turno.countDocuments(filter);
+            let totalPages = Math.ceil(totalTurnos / pageSize);
+            if (totalPages === 0) {
+                totalPages = 1;
+            }
+            // Emitir los resultados al cliente
+            socket.emit('response-turnos', {
+                turnos,
+                totalTurnos,
+                totalPages
+            });
+        } catch (error) {
+            socket.emit('error', { message: 'Error retrieving turnos', error });
+        }
     });
     socket.on('request-fechas-turnos', async (turno) => {
         const turnosOcupados = await Turno.find({ turno });
-        socket.emit('response-fechas-turnos', turnosOcupados);
+        let dummyArr = [];
+        // Crear un mapa para agrupar las cantidades por fecha
+        const turnosPorFecha = {};
+        turnosOcupados.forEach((t) => {
+            if (turnosPorFecha[t.fecha]) {
+                // Si ya existe la fecha, sumamos la cantidad
+                turnosPorFecha[t.fecha] += t.cantidad;
+            } else {
+                // Si no existe la fecha, la inicializamos
+                turnosPorFecha[t.fecha] = t.cantidad;
+            }
+        });
+        // Convertir el mapa en un array de objetos con la fecha y la suma de cantidades
+        for (const fecha in turnosPorFecha) {
+            dummyArr.push({ fecha, cantidad: turnosPorFecha[fecha] });
+        }
+        // Emitir el array procesado
+        socket.emit('response-fechas-turnos', dummyArr);
     });
     socket.on('request-cantidad', () => {
         let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
@@ -792,31 +860,49 @@ io.on('connection', (socket) => {
         turno.facturado = turnoData.facturado;
         turno.formaDeCobro = turnoData.formaDeCobro;
         await turno.save();
-        let data_factura = '';
         if (turnoData.facturado) {
-            data_factura = await afipService.facturaB(totalVenta, 0);
+            let data_factura = '';
+            data_factura = await afipService.facturaB(turnoData.cobrado, 0);
+            let data = {};
+            data.factura = 'B';
+            data.numeroComprobante = data_factura.numeroComprobante;
+            data.puntoDeVenta = afipService.ptoVta;
+            data.cuit_afip = afipService.CUIT;
+            data.precio = turnoData.cobrado;
+            data.CAE = data_factura.CAE;
+            data.vtoCAE = data_factura.vtoCAE;
+            data.tipoDoc = data_factura.docTipo;
+            data.productosCarrito = [{ nombre: "RESERVA", carritoCantidad: 1, venta: turnoData.cobrado }];
+            await imprimirTicket(data);
+            const venta = {
+                productos: data.productosCarrito,
+                tipoFactura: data.factura,
+                stringNumeroFactura: `0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0"),
+                numeroFactura: data.numeroComprobante,
+                monto: turnoData.cobrado,
+                formaPago: turnoData.formaDeCobro,
+                fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'),
+                idTurno: turno._id
+            };
+            await Venta.create(venta);
+        } else {
+            await Venta.create({
+                formaPago: turnoData.formaDeCobro,
+                tipoFactura: 'B',
+                monto: turnoData.cobrado,
+                fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'),
+            });
         }
-        let data = {};
-        data.factura = 'B';
-        data.numeroComprobante = data_factura.numeroComprobante;
-        data.puntoDeVenta = afipService.ptoVta;
-        data.cuit_afip = afipService.CUIT;
-        data.precio = turnoData.cobrado;
-        data.CAE = data_factura.CAE;
-        data.vtoCAE = data_factura.vtoCAE;
-        data.tipoDoc = data_factura.docTipo;
-        data.productosCarrito = [{ nombre: "CATA" }];
-        await imprimirTicket(data);
-        await Venta.create({
-            formaPago: turnoData.formaDeCobro,
-
-        });
         io.emit('cambios');
     });
     socket.on('cambiar-cantidad-color', (color, cantidad) => {
         let cantidades = JSON.parse(fs.readFileSync(path.join(__dirname, 'cantidad_colores.json'), { encoding: 'utf-8' }));
         cantidades[color] = parseFloat(cantidad);
         fs.writeFileSync(path.join(__dirname, 'cantidad_colores.json'), JSON.stringify(cantidades));
+        io.emit('cambios');
+    });
+    socket.on('add-carrito', async (codigo) => {
+        await Product.findOneAndUpdate({ codigo }, { carrito: true });
         io.emit('cambios');
     });
 });
