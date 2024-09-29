@@ -11,6 +11,9 @@ function Ventas() {
     const [fecha, setFecha] = useState(moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'));
     const [alreadyClicked, setAlreadyClicked] = useState(false);
 
+    const [openModal, setOpenModal] = useState(false);
+    const [venta, setVenta] = useState({});
+
     const fetchVentas = (fecha, page) => {
         setAlreadyClicked(false);
         socket.emit('request-ventas', { fecha, page })
@@ -38,6 +41,12 @@ function Ventas() {
     };
 
     const handleDateChange = (e) => setFecha(e.target.value);
+
+    const ventaClick = (venta) => {
+        console.log('hola');
+        setVenta(venta);
+        setOpenModal(true);
+    };
 
     useEffect(() => {
         socket.on('cambios', () => fetchVentas(fecha, page));
@@ -90,7 +99,14 @@ function Ventas() {
                     {
                         ventas?.length > 0 ? (
                             ventas.map((venta, index) => (
-                                <tr onClick={() => { if (venta.numeroFactura) { window.open(`${IP}/facturas/${venta.stringNumeroFactura}.pdf`) } }} key={index}>
+                                <tr onClick={() => {
+                                    console.log('asd');
+                                    if (venta.numeroFactura) {
+                                        window.open(`${IP}/facturas/${venta.stringNumeroFactura}.pdf`)
+                                    } else {
+                                        ventaClick(venta)
+                                    }
+                                }} key={index}>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{new Date(venta.createdAt).toLocaleString('es-AR', {
                                         year: 'numeric',
                                         month: '2-digit',
@@ -122,6 +138,24 @@ function Ventas() {
                     }
                 </tbody >
             </table >
+            {
+                openModal && <div className="modal" tabIndex="-1">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">VENTA - ${venta.monto}</h5>
+                            </div>
+                            <div>DESCUENTO: ${venta.descuento} </div>
+                            {
+                                venta.productos.map((prod, index) => <div key={index}> {prod.carritoCantidad} x {prod.nombre}</div>)
+                            }
+                            <div className="modal-footer">
+                                <button onClick={() => setOpenModal(false)} type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div >
     )
 }

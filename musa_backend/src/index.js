@@ -59,6 +59,8 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware para servir los archivos estáticos de la carpeta dist
 app.use(express.static(path.join(__dirname, 'dist')));
 
+app.use('/.well-known/pki-validation/', express.static(path.join(__dirname, '.well-known/pki-validation')));
+
 // Sirviendo la carpeta 'uploads' de forma estática
 app.use('/uploads', express.static('uploads'));
 
@@ -220,6 +222,9 @@ async function imprimirTicket(data) {
         doc.x = 0;
     });
     doc.addPage();
+    currentY = doc.y;
+    doc.text(`DESCUENTO:`, 0, currentY, { align: "left" });
+    doc.text(`$${data.descuento}`, 0, currentY, { align: "right" });
     if (data.factura === 'A') {
         doc.text(`SUBTOTAL: ${(data.precio / 1.21).toFixed(2)}`, { align: 'right' });
         doc.moveDown();
@@ -419,6 +424,7 @@ io.on('connection', (socket) => {
             productosCarrito.forEach(producto => {
                 totalVenta += producto.carritoCantidad * parseFloat(producto.venta);
             });
+            totalVenta = totalVenta - datosCompra.descuento;
             if (datosCompra.factura === 'A') {
                 const data_factura = await afipService.facturaA(totalVenta, datosCompra.cuit);
                 let data = {};
@@ -457,6 +463,7 @@ io.on('connection', (socket) => {
                 data.puntoDeVenta = afipService.ptoVta;
                 data.cuit_afip = afipService.CUIT;
                 data.precio = totalVenta;
+                data.descuento = datosCompra.descuento;
                 data.CAE = data_factura.CAE;
                 data.vtoCAE = data_factura.vtoCAE;
                 data.tipoDoc = data_factura.docTipo;
@@ -474,7 +481,8 @@ io.on('connection', (socket) => {
                     provincia: data.provincia,
                     localidad: data.localidad,
                     razonSocial: data.razonSocial,
-                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD')
+                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'),
+                    descuento: datosCompra.descuento,
                 };
                 await Venta.create(venta);
             } else if (datosCompra.factura === 'B') {
@@ -493,6 +501,7 @@ io.on('connection', (socket) => {
                 data.puntoDeVenta = afipService.ptoVta;
                 data.cuit_afip = afipService.CUIT;
                 data.precio = totalVenta;
+                data.descuento = datosCompra.descuento;
                 data.CAE = data_factura.CAE;
                 data.vtoCAE = data_factura.vtoCAE;
                 data.tipoDoc = data_factura.docTipo;
@@ -508,7 +517,8 @@ io.on('connection', (socket) => {
                     formaPago: datosCompra.formaPago,
                     domicilio: datosCompra.domicilio,
                     nombre: datosCompra.nombre,
-                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD')
+                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'),
+                    descuento: datosCompra.descuento,
                 };
                 await Venta.create(venta);
             } else {
@@ -516,7 +526,8 @@ io.on('connection', (socket) => {
                     productos: productosCarrito,
                     monto: totalVenta,
                     formaPago: datosCompra.formaPago,
-                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD')
+                    fecha: moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'),
+                    descuento: datosCompra.descuento,
                 };
                 await Venta.create(venta);
             }
@@ -581,7 +592,8 @@ io.on('connection', (socket) => {
                 localidad: venta.localidad,
                 direccion: venta.domicilio,
                 provincia: venta.provincia,
-                notaCredito: true
+                notaCredito: true,
+                descuento: venta.descuento
             };
         } else if (venta.tipoFactura === 'B') {
             // Nota de crédito tipo B
@@ -598,7 +610,8 @@ io.on('connection', (socket) => {
                 precio: venta.monto,
                 tipoDoc: data.docTipo,
                 productosCarrito: venta.productos,
-                notaCredito: true
+                notaCredito: true,
+                descuento: venta.descuento
             };
             if (venta.idTurno) {
                 data.productosCarrito = [{ nombre: 'RESERVA', carritoCantidad: 1, venta: venta.monto }]
@@ -904,6 +917,25 @@ io.on('connection', (socket) => {
     socket.on('add-carrito', async (codigo) => {
         await Product.findOneAndUpdate({ codigo }, { carrito: true });
         io.emit('cambios');
+    });
+    socket.on('total-cantidad-productos', async () => {
+        try {
+            // Usamos agregación para sumar el campo "cantidad" de todos los productos
+            const totalCantidad = await Product.aggregate([
+                {
+                    $group: {
+                        _id: null,  // No necesitamos agrupar por un campo específico
+                        total: { $sum: "$cantidad" }  // Sumamos el campo "cantidad"
+                    }
+                }
+            ]);
+            // Si totalCantidad no está vacío, enviamos el resultado
+            const total = totalCantidad.length > 0 ? totalCantidad[0].total : 0;
+            socket.emit('res-total-cantidad-productos', total);
+        } catch (error) {
+            console.error('Error al obtener la cantidad total:', error);
+            socket.emit('error-total-cantidad-productos', 'Hubo un error al calcular la cantidad total');
+        }
     });
 });
 

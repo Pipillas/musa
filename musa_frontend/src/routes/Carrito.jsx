@@ -9,7 +9,11 @@ const Carrito = () => {
     const [productos, setProductos] = useState([]);
     const [total, setTotal] = useState(0);
 
+    const [totalFinal, setTotalFinal] = useState(0);
+
     const [inputBuffer, setInputBuffer] = useState('');
+
+    const [descuento, setDescuento] = useState(0);
 
     const [formaPago, setFormaPago] = useState(null);
     const [factura, setFactura] = useState(null);
@@ -29,6 +33,12 @@ const Carrito = () => {
     const calcularTotal = useCallback(() => {
         return productos.reduce((total, producto) => total + (producto.venta * producto.carritoCantidad), 0);
     }, [productos]);
+
+    useEffect(() => {
+        if (descuento !== undefined) {
+            setTotalFinal(total - descuento);
+        }
+    }, [total, descuento]);
 
     const handleInputChange = useCallback((id, value, maxCantidad) => {
         const cantidadNumerica = parseInt(value.replace(/\D/g, ''));
@@ -53,6 +63,7 @@ const Carrito = () => {
 
     const finalizar = useCallback(() => {
         const datosCompra = {
+            descuento,
             formaPago,
             factura,
             ...(pedirCuit && { cuit }),
@@ -76,7 +87,6 @@ const Carrito = () => {
                 return '';
             }
             const newBuffer = prevBuffer + e.key;
-            console.log(newBuffer);
             return newBuffer;
         });
         /*
@@ -113,6 +123,7 @@ const Carrito = () => {
             setDNI('');
             setNombre('');
             setDomicilio('');
+            setDescuento(0);
         });
         fetchProductosCarrito();
         document.addEventListener('keydown', handleGlobalKeyDown);
@@ -159,6 +170,9 @@ const Carrito = () => {
                 setDomicilio={setDomicilio}
                 todoOK={todoOK}
                 finalizar={finalizar}
+                descuento={descuento}
+                setDescuento={setDescuento}
+                totalFinal={totalFinal}
             />
         </div>
     );
@@ -204,15 +218,41 @@ const ProductoItem = ({ producto, borrarCarrito, handleCantidad, handleInputChan
     </div>
 );
 
-const ResumenCompra = ({ total, formaPago, handleFormaPagoClick, factura, handleFacturaClick, pedirCuit, cuit, setCUIT, pedirData, dni, setDNI, nombre, setNombre, domicilio, setDomicilio, todoOK, finalizar }) => (
+const ResumenCompra = ({ totalFinal, descuento, setDescuento, total, formaPago, handleFormaPagoClick, factura, handleFacturaClick, pedirCuit, cuit, setCUIT, pedirData, dni, setDNI, nombre, setNombre, domicilio, setDomicilio, todoOK, finalizar }) => (
     <div className="resumen-section">
         <div>
             <h2>RESUMEN DE COMPRA</h2>
-            <div>
+            <div className="div-total">
+                <NumericFormat
+                    displayType="text"
+                    prefix="SUBTOTAL: $"
+                    value={total}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                />
+            </div>
+            <div className="descuento-div">
+                <span>DESCUENTO</span>
+                <NumericFormat
+                    prefix="$"
+                    className="input-cuit"
+                    value={descuento}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    isAllowed={(values) => {
+                        const { floatValue } = values;
+                        return floatValue === undefined || floatValue <= total;
+                    }}
+                    onValueChange={(values) => {
+                        setDescuento(values.floatValue || 0);
+                    }}
+                />
+            </div>
+            <div className="div-total">
                 <NumericFormat
                     displayType="text"
                     prefix="TOTAL: $"
-                    value={total}
+                    value={totalFinal}
                     thousandSeparator="."
                     decimalSeparator=","
                 />

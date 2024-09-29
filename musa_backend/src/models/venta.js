@@ -16,6 +16,7 @@ const venta = new mongoose.Schema({
     notaCredito: { type: Boolean },
     fecha: { type: String },
     idTurno: { type: String },
+    descuento: { type: Number }
 }, { timestamps: true });
 
 const Product = mongoose.model('Venta', venta);

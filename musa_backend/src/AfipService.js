@@ -26,25 +26,65 @@ class AfipService {
     }
 
     async initWsfe() {
+        const taFile = path.join(__dirname, 'wsfe_ta.xml');
+        const wsaaFe = new Wsaa(this.conf);
+        wsaaFe.setCertificate(this.pem);
+        wsaaFe.setKey(this.key);
+
         if (!this.wsfe) {
-            const wsaaFe = new Wsaa(this.conf);
-            wsaaFe.setCertificate(this.pem);
-            wsaaFe.setKey(this.key);
+            // Si this.wsfe no está inicializado, obtenemos el TA
             const ta = await this.getValidTA(wsaaFe, "wsfe");
             this.wsfe = new Wsfe(ta, this.conf);
+        } else {
+            try {
+                // Verificamos si el TA almacenado es válido
+                const storedTA = wsaaFe.createTAFromString(fs.readFileSync(taFile, 'utf8'));
+                if (!storedTA.isValid()) {
+                    // Si el TA no es válido, obtenemos uno nuevo
+                    const newTA = await this.getValidTA(wsaaFe, "wsfe");
+                    this.wsfe = new Wsfe(newTA, this.conf);
+                } else {
+                    console.log('El TA almacenado es válido.');
+                }
+            } catch (error) {
+                // Si hay un error al leer el archivo o el TA no es válido, obtenemos uno nuevo
+                console.error('Error al validar el TA almacenado:', error);
+                const newTA = await this.getValidTA(wsaaFe, "wsfe");
+                this.wsfe = new Wsfe(newTA, this.conf);
+            }
         }
     }
 
     async initWspci() {
+        const taFile = path.join(__dirname, 'ws_sr_constancia_inscripcion_ta.xml');
+        const wsaaPci = new Wsaa({
+            ...this.conf,
+            service: "ws_sr_constancia_inscripcion",
+        });
+        wsaaPci.setCertificate(this.pem);
+        wsaaPci.setKey(this.key);
+
         if (!this.wspci) {
-            const wsaaPci = new Wsaa({
-                ...this.conf,
-                service: "ws_sr_constancia_inscripcion",
-            });
-            wsaaPci.setCertificate(this.pem);
-            wsaaPci.setKey(this.key);
+            // Si this.wspci no está inicializado, obtenemos el TA
             const ta = await this.getValidTA(wsaaPci, "ws_sr_constancia_inscripcion");
             this.wspci = new Wspci(ta, this.conf);
+        } else {
+            try {
+                // Verificamos si el TA almacenado es válido
+                const storedTA = wsaaPci.createTAFromString(fs.readFileSync(taFile, 'utf8'));
+                if (!storedTA.isValid()) {
+                    // Si el TA no es válido, obtenemos uno nuevo
+                    const newTA = await this.getValidTA(wsaaPci, "ws_sr_constancia_inscripcion");
+                    this.wspci = new Wspci(newTA, this.conf);
+                } else {
+                    console.log('El TA almacenado para ws_sr_constancia_inscripcion es válido.');
+                }
+            } catch (error) {
+                // Si hay un error al leer el archivo o el TA no es válido, obtenemos uno nuevo
+                console.error('Error al validar el TA almacenado para ws_sr_constancia_inscripcion:', error);
+                const newTA = await this.getValidTA(wsaaPci, "ws_sr_constancia_inscripcion");
+                this.wspci = new Wspci(newTA, this.conf);
+            }
         }
     }
 
@@ -84,6 +124,7 @@ class AfipService {
     }
 
     async facturaA(monto, cuit) {
+        await this.initWsfe();
         const CbteTipo = 1;
         const ultimoAutorizado = await this.ultimoAutorizado(this.ptoVta, CbteTipo);
         const fecha = this.getCurrentDate();
@@ -100,6 +141,7 @@ class AfipService {
     }
 
     async facturaB(monto, docNro) {
+        await this.initWsfe();
         const CbteTipo = 6;
         const ultimoAutorizado = await this.ultimoAutorizado(this.ptoVta, CbteTipo);
         const fecha = this.getCurrentDate();
@@ -117,6 +159,7 @@ class AfipService {
     }
 
     async notaCreditoA(monto, cuit, facturaNumero) {
+        await this.initWsfe();
         const CbteTipo = 3;
         const ultimoAutorizado = await this.ultimoAutorizado(this.ptoVta, CbteTipo);
         const fecha = this.getCurrentDate();
@@ -137,6 +180,7 @@ class AfipService {
     }
 
     async notaCreditoB(monto, docNro, facturaNumero) {
+        await this.initWsfe();
         const CbteTipo = 8;
         const ultimoAutorizado = await this.ultimoAutorizado(this.ptoVta, CbteTipo);
         const fecha = this.getCurrentDate();

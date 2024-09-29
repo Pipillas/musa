@@ -25,7 +25,12 @@ function Inventario() {
     const [installedPrinters, setInstalledPrinters] = useState([]);
     const [selectedPrinter, setSelectedPrinter] = useState('');
 
-    const fetchProductos = () => socket.emit('request-productos', { page, search });
+    const [totalCantidad, setTotalCantidad] = useState(0);
+
+    const fetchProductos = () => {
+        socket.emit('request-productos', { page, search })
+        socket.emit('total-cantidad-productos', { page, search })
+    };
 
     useEffect(() => {
         if (window.JSPM) {
@@ -55,10 +60,12 @@ function Inventario() {
             setProductos(data.productos);
             setTotalPages(data.totalPages);
         });
+        socket.on('res-total-cantidad-productos', (t) => setTotalCantidad(t));
         fetchProductos(page, search);
         return () => {
             socket.off('cambios');
             socket.off('response-productos');
+            socket.off('res-total-cantidad-productos');
         };
     }, [page, search]);
 
@@ -140,6 +147,10 @@ function Inventario() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (formData.codigo.length < 13) {
+            alert('EL CODIGO TIENE MENOS DE 13 DIGITOS');
+            return;
+        };
         const formDataToSend = new FormData();
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
@@ -397,7 +408,7 @@ E
                                 <th>Cepa</th>
                                 <th>Origen</th>
                                 <th>Venta</th>
-                                <th>Cantidad</th>
+                                <th>Cantidad {totalCantidad}</th>
                                 <th>Foto</th>
                                 <th colSpan={4}>Funciones</th>
                             </tr>
@@ -405,7 +416,7 @@ E
                         <tbody>
                             {productos?.map((producto) => (
                                 <tr key={producto._id}>
-                                    <td>{producto.codigo}</td>
+                                    <td className={`${producto.codigo.length < 13 ? 'red' : ''}`} >{producto.codigo}</td>
                                     <td>{producto.nombre}</td>
                                     <td>{producto.year}</td>
                                     <td>{producto.bodega}</td>

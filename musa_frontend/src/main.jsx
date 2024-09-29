@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import './styles.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-export const IP = `http://musavinos.com`
+export const IP = `https://musavinos.com`
 
 export const socket = io(`${IP}`);
 

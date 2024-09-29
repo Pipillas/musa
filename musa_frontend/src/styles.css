@@ -962,6 +962,22 @@ input[type="checkbox"] {
     text-align: center;
 }
 
+.red {
+    color: red;
+}
+
+.div-total {
+    font-size: 30px;
+}
+
+.descuento-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 24px;
+}
+
 @media (max-width: 768px) {
     .modal-content {
         flex-direction: column;
