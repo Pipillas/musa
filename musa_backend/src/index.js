@@ -130,10 +130,11 @@ app.post('/upload', upload.single('foto'), async (req, res) => {
 async function imprimirTicket(data) {
     const doc = new PDFDocument({ size: "A7", margins: { top: 0, bottom: 0, left: 0, right: 0 } });
     let stringNumeroComprobante = `0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0");
+    let nombrePath = `F${data.factura}-0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0");
     if (data.notaCredito) {
-        doc.pipe(fs.createWriteStream(path.join(__dirname, 'notas_de_credito', `${stringNumeroComprobante}.pdf`)));
+        doc.pipe(fs.createWriteStream(path.join(__dirname, 'notas_de_credito', `${nombrePath}.pdf`)));
     } else {
-        doc.pipe(fs.createWriteStream(path.join(__dirname, 'facturas', `${stringNumeroComprobante}.pdf`)));
+        doc.pipe(fs.createWriteStream(path.join(__dirname, 'facturas', `${nombrePath}.pdf`)));
     }
     doc.fontSize(12);
     doc.font("Courier-Bold");
@@ -287,9 +288,9 @@ async function imprimirTicket(data) {
     doc.end();
     await new Promise(res => setTimeout(res, 250));
     if (data.notaCredito) {
-        print(path.join(__dirname, 'notas_de_credito', `${stringNumeroComprobante}.pdf`));
+        print(path.join(__dirname, 'notas_de_credito', `${nombrePath}.pdf`));
     } else {
-        print(path.join(__dirname, 'facturas', `${stringNumeroComprobante}.pdf`));
+        print(path.join(__dirname, 'facturas', `${nombrePath}.pdf`));
     }
 };
 
@@ -474,7 +475,7 @@ io.on('connection', (socket) => {
                 const venta = {
                     productos: productosCarrito,
                     tipoFactura: datosCompra.factura,
-                    stringNumeroFactura: `0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0"),
+                    stringNumeroFactura: `F${datosCompra.factura}-0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0"),
                     numeroFactura: data.numeroComprobante,
                     cuit: datosCompra.cuit,
                     monto: totalVenta,
@@ -512,7 +513,7 @@ io.on('connection', (socket) => {
                 const venta = {
                     productos: productosCarrito,
                     tipoFactura: datosCompra.factura,
-                    stringNumeroFactura: `0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0"),
+                    stringNumeroFactura: `F${datosCompra.factura}-0000${data.puntoDeVenta.toString()}-` + data.numeroComprobante.toString().padStart(8, "0"),
                     numeroFactura: data.numeroComprobante,
                     cuit: datosCompra.dni,
                     monto: totalVenta,

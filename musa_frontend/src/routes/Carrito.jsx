@@ -28,6 +28,8 @@ const Carrito = () => {
 
     const [todoOK, setTodoOK] = useState(false);
 
+    const [compraEnProceso, setCompraEnProceso] = useState(false); // Nuevo estado
+
     const fetchProductosCarrito = useCallback(() => socket.emit('productos-carrito'), []);
 
     const calcularTotal = useCallback(() => {
@@ -62,6 +64,7 @@ const Carrito = () => {
     }, [productos]);
 
     const finalizar = useCallback(() => {
+        setCompraEnProceso(true); // Deshabilitar el botón de finalizar
         const datosCompra = {
             descuento,
             formaPago,
@@ -115,6 +118,7 @@ const Carrito = () => {
         socket.on('error-cuit-invalido', () => alert('PROBABLEMENTE EL CUIT INGRESADO ESTA MAL ESCRITO'));
         socket.on('error-no-cuit', () => alert('PROBABLEMENTE NO ES CUIT'));
         socket.on('compra-finalizada', () => {
+            setCompraEnProceso(false); // Habilitar nuevamente el botón al finalizar la compra
             setFormaPago(null);
             setFactura(null);
             setPedirData(false);
@@ -173,6 +177,7 @@ const Carrito = () => {
                 descuento={descuento}
                 setDescuento={setDescuento}
                 totalFinal={totalFinal}
+                compraEnProceso={compraEnProceso} // Pasar el estado
             />
         </div>
     );
@@ -187,7 +192,7 @@ const ProductoItem = ({ producto, borrarCarrito, handleCantidad, handleInputChan
         </div>
         <div className="producto-item">
             <div className="producto-imagen">
-                <img src={`${IP}/${producto.foto}`} alt={producto.nombre} />
+                <img src={`${IP()}/${producto.foto}`} alt={producto.nombre} />
             </div>
             <div className="producto-detalle">
                 <div className="producto-detalle-div">
@@ -218,7 +223,7 @@ const ProductoItem = ({ producto, borrarCarrito, handleCantidad, handleInputChan
     </div>
 );
 
-const ResumenCompra = ({ totalFinal, descuento, setDescuento, total, formaPago, handleFormaPagoClick, factura, handleFacturaClick, pedirCuit, cuit, setCUIT, pedirData, dni, setDNI, nombre, setNombre, domicilio, setDomicilio, todoOK, finalizar }) => (
+const ResumenCompra = ({ totalFinal, descuento, setDescuento, total, formaPago, handleFormaPagoClick, factura, handleFacturaClick, pedirCuit, cuit, setCUIT, pedirData, dni, setDNI, nombre, setNombre, domicilio, setDomicilio, todoOK, finalizar, compraEnProceso }) => (
     <div className="resumen-section">
         <div>
             <h2>RESUMEN DE COMPRA</h2>
@@ -292,9 +297,15 @@ const ResumenCompra = ({ totalFinal, descuento, setDescuento, total, formaPago, 
                 </button>
             </div>
         </div>
-        {pedirData && <DatosCompra dni={dni} setDNI={setDNI} nombre={nombre} setNombre={setNombre} domicilio={domicilio} setDomicilio={setDomicilio} />}
+        {pedirData && <DatosCompra dni={dni} setDNI={setDNI} nombre={nombre} setNombre={setNombre} domicilio={domicilio} setDomicilio={setDomicilio}  />}
         {pedirCuit && <CUITInput cuit={cuit} setCUIT={setCUIT} />}
-        {todoOK && <div className="div-boton-finalizar"><button onClick={finalizar} className="boton-finalizar">FINALIZAR</button></div>}
+        {todoOK && (
+            <div className="div-boton-finalizar">
+                <button onClick={finalizar} className="boton-finalizar" disabled={compraEnProceso}>
+                    {compraEnProceso ? 'Procesando...' : 'FINALIZAR'}
+                </button>
+            </div>
+        )}
     </div>
 );
 

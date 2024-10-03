@@ -45,7 +45,6 @@ function Ventas() {
     const handleDateChange = (e) => setFecha(e.target.value);
 
     const ventaClick = (venta) => {
-        console.log('hola');
         setVenta(venta);
         setOpenModal(true);
     };
@@ -104,7 +103,7 @@ function Ventas() {
                                 <tr onClick={() => {
                                     console.log('asd');
                                     if (venta.numeroFactura) {
-                                        window.open(`${IP}/facturas/${venta.stringNumeroFactura}.pdf`)
+                                        window.open(`${IP()}/facturas/${venta.stringNumeroFactura}.pdf`)
                                     } else {
                                         ventaClick(venta)
                                     }
