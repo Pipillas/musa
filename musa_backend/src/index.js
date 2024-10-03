@@ -29,6 +29,8 @@ const io = socketIo(server, {
     }
 });
 
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 // Conectar a MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/inventario')
     .then(() => console.log('Conectado a MongoDB'))
@@ -51,7 +53,7 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
     }
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
