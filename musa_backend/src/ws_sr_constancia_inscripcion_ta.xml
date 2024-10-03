@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<loginTicketResponse version="1.0">
+    <header>
+        <source>CN=wsaa, O=AFIP, C=AR, SERIALNUMBER=CUIT 33693450239</source>
+        <destination>SERIALNUMBER=CUIT 20418588897, CN=musacert</destination>
+        <uniqueId>159518813</uniqueId>
+        <generationTime>2024-10-02T20:34:16.942-03:00</generationTime>
+        <expirationTime>2024-10-03T08:34:16.942-03:00</expirationTime>
+    </header>
+    <credentials>
+        <token>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/Pgo8c3NvIHZlcnNpb249IjIuMCI+CiAgICA8aWQgc3JjPSJDTj13c2FhLCBPPUFGSVAsIEM9QVIsIFNFUklBTE5VTUJFUj1DVUlUIDMzNjkzNDUwMjM5IiB1bmlxdWVfaWQ9IjMwMzUwNjk3MTYiIGdlbl90aW1lPSIxNzI3OTExOTk2IiBleHBfdGltZT0iMTcyNzk1NTI1NiIvPgogICAgPG9wZXJhdGlvbiB0eXBlPSJsb2dpbiIgdmFsdWU9ImdyYW50ZWQiPgogICAgICAgIDxsb2dpbiBlbnRpdHk9IjMzNjkzNDUwMjM5IiBzZXJ2aWNlPSJ3c19zcl9jb25zdGFuY2lhX2luc2NyaXBjaW9uIiB1aWQ9IlNFUklBTE5VTUJFUj1DVUlUIDIwNDE4NTg4ODk3LCBDTj1tdXNhY2VydCIgYXV0aG1ldGhvZD0iY21zIiByZWdtZXRob2Q9IjIyIj4KICAgICAgICAgICAgPHJlbGF0aW9ucz4KICAgICAgICAgICAgICAgIDxyZWxhdGlvbiBrZXk9IjIwNDE4NTg4ODk3IiByZWx0eXBlPSI0Ii8+CiAgICAgICAgICAgIDwvcmVsYXRpb25zPgogICAgICAgIDwvbG9naW4+CiAgICA8L29wZXJhdGlvbj4KPC9zc28+Cg==</token>
+        <sign>h4dppEWIjaz+et26SZJEsQx90rmOFxgSD+nhXbWvA7MSfOsKxfCgwVw8loTjjoLv3TbppuC5V3HgXdyaMMa/xBe4oRyXnEDJYk1opZfIT+0dunvk9LFeQgu6w0o+4vRqOGepNFF9xCUwvXCWs+j8vbh4xkVeCTTBdntlkSq1Cr0=</sign>
+    </credentials>
+</loginTicketResponse>
