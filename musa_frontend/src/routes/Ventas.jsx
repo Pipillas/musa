@@ -26,12 +26,14 @@ function Ventas() {
             }
             return;
         }
-        if (alreadyClicked) {
-            alert('NOTA DE CREDITO EN PROCESO');
-            return;
-        }
-        setAlreadyClicked(true);
-        socket.emit('nota-credito', venta);
+        if (window.confirm('¿ESTAS SEGURO QUE QUIERES HACER UNA NOTA DE CREDITO?')) {
+            if (alreadyClicked) {
+                alert('NOTA DE CREDITO EN PROCESO');
+                return;
+            }
+            setAlreadyClicked(true);
+            socket.emit('nota-credito', venta);
+        };
     };
 
     const handlePageChange = (newPage) => {
