@@ -207,8 +207,8 @@ function Caja() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><NumericFormat prefix='$' displayType='text' value={totales.efectivo} thousandSeparator="." decimalSeparator=',' /></td>
-                            <td><NumericFormat prefix='$' displayType='text' value={totales.digital} thousandSeparator="." decimalSeparator=',' /></td>
+                            <td><NumericFormat prefix='$' displayType='text' value={parseFloat(totales.efectivo).toFixed(2)} thousandSeparator="." decimalSeparator=',' /></td>
+                            <td><NumericFormat prefix='$' displayType='text' value={parseFloat(totales.digital).toFixed(2)} thousandSeparator="." decimalSeparator=',' /></td>
                         </tr>
                     </tbody>
                 </table>

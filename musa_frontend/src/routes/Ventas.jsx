@@ -1,22 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { IP, socket } from '../main';
 import { NumericFormat } from 'react-number-format';
 import moment from 'moment-timezone';
 
 function Ventas() {
-
     const [ventas, setVentas] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [fecha, setFecha] = useState(moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'));
     const [alreadyClicked, setAlreadyClicked] = useState(false);
-
     const [openModal, setOpenModal] = useState(false);
     const [venta, setVenta] = useState({});
+    
+    // Nuevo estado para almacenar la suma de los montos
+    const [totalMonto, setTotalMonto] = useState(0);
 
     const fetchVentas = (fecha, page) => {
         setAlreadyClicked(false);
-        socket.emit('request-ventas', { fecha, page })
+        socket.emit('request-ventas', { fecha, page });
     };
 
     const notaCredito = (venta) => {
@@ -48,6 +49,14 @@ function Ventas() {
         setVenta(venta);
         setOpenModal(true);
     };
+
+    // Calcular la suma de los montos, excluyendo las notas de crédito
+    useEffect(() => {
+        const total = ventas.reduce((acc, venta) => {
+            return venta.notaCredito ? acc : acc + venta.monto; // Solo sumar si no es nota de crédito
+        }, 0);
+        setTotalMonto(total);
+    }, [ventas]);
 
     useEffect(() => {
         socket.on('cambios', () => fetchVentas(fecha, page));
@@ -91,7 +100,7 @@ function Ventas() {
                         <th>Tipo de Factura</th>
                         <th>Número de Factura</th>
                         <th>CUIT/DNI</th>
-                        <th>Monto</th>
+                        <th>Monto<br /><NumericFormat prefix='$' displayType='text' value={totalMonto.toFixed(2)} thousandSeparator="." decimalSeparator=',' /></th>
                         <th>Forma de Pago</th>
                         <th></th>
                     </tr>
@@ -103,23 +112,27 @@ function Ventas() {
                                 <tr onClick={() => {
                                     console.log('asd');
                                     if (venta.numeroFactura) {
-                                        window.open(`${IP()}/facturas/${venta.stringNumeroFactura}.pdf`)
+                                        window.open(`${IP()}/facturas/${venta.stringNumeroFactura}.pdf`);
                                     } else {
-                                        ventaClick(venta)
+                                        ventaClick(venta);
                                     }
                                 }} key={index}>
-                                    <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{new Date(venta.createdAt).toLocaleString('es-AR', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        hour12: false
-                                    })}</td>
+                                    <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>
+                                        {new Date(venta.createdAt).toLocaleString('es-AR', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false
+                                        })}
+                                    </td>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{venta.tipoFactura ? venta.tipoFactura : '-'}</td>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{venta.numeroFactura ? venta.numeroFactura : '-'}</td>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{venta.cuit ? venta.cuit : "FINAL"}</td>
-                                    <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}><NumericFormat prefix='$' displayType='text' value={venta.monto.toFixed(2)} thousandSeparator="." decimalSeparator=',' /></td>
+                                    <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>
+                                        <NumericFormat prefix='$' displayType='text' value={venta.monto.toFixed(2)} thousandSeparator="." decimalSeparator=',' />
+                                    </td>
                                     <td style={{ backgroundColor: venta.notaCredito && '#e55959' }}>{venta.formaPago}</td>
                                     <td className='editar nafta' onClick={(e) => {
                                         e.stopPropagation();
@@ -127,9 +140,11 @@ function Ventas() {
                                             alert('YA SE HIZO UNA NOTA DE CREDITO DE ESA FACTURA');
                                             return;
                                         };
-                                        notaCredito(venta)
-                                    }}><i className="bi bi-file-earmark-break-fill"></i></td>
-                                </tr >
+                                        notaCredito(venta);
+                                    }}>
+                                        <i className="bi bi-file-earmark-break-fill"></i>
+                                    </td>
+                                </tr>
                             ))
                         ) : (
                             <tr>
@@ -137,8 +152,8 @@ function Ventas() {
                             </tr>
                         )
                     }
-                </tbody >
-            </table >
+                </tbody>
+            </table>
             {
                 openModal && <div className="modal" tabIndex="-1">
                     <div className="modal-dialog">
@@ -146,7 +161,7 @@ function Ventas() {
                             <div className="modal-header">
                                 <h5 className="modal-title">VENTA - ${venta.monto}</h5>
                             </div>
-                            <div>DESCUENTO: ${venta.descuento} </div>
+                            <div>DESCUENTO: ${venta.descuento}</div>
                             {
                                 venta.productos.map((prod, index) => <div key={index}> {prod.carritoCantidad} x {prod.nombre}</div>)
                             }
@@ -157,7 +172,7 @@ function Ventas() {
                     </div>
                 </div>
             }
-        </div >
+        </div>
     )
 }
 

@@ -147,10 +147,12 @@ function Inventario() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        /*
         if (formData.codigo.length < 13) {
             alert('EL CODIGO TIENE MENOS DE 13 DIGITOS');
             return;
         };
+        */
         const formDataToSend = new FormData();
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
