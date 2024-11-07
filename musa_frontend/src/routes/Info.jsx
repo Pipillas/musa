@@ -217,6 +217,17 @@ function Info() {
                     </tbody>
                 </table>
             </div>
+            <div className="buscador">
+                <div className="paginacion">
+                    <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
+                        <i className="bi bi-arrow-left"></i>
+                    </button>
+                    <span>{page} de {totalPages}</span>
+                    <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
+                        <i className="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
 
             {/* Modal */}
             {
@@ -244,6 +255,13 @@ function Info() {
                                         <span><i className="bi bi-box-seam"></i> {producto.cantidad}</span>
                                     </div>
                                     {/* Aquí se cambia el icono del corazón */}
+                                    {
+                                        /*
+                                        <span className="car" onClick={toggleFavorite} style={{ color: producto.carrito ? 'red' : 'black' }}>
+                                        <i className={producto.carrito ? "bi bi-cart-check-fill" : "bi bi-cart4"}></i>
+                                    </span>
+                                    */
+                                    }
                                     <span className="fav" onClick={toggleFavorite} style={{ color: producto.favorito ? 'red' : 'black' }}>
                                         <i className={producto.favorito ? "bi bi-heart-fill" : "bi bi-heart"}></i>
                                     </span>

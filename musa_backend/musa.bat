@@ -1,1 +1,1 @@
-cmd /k node src/index.js
+cmd /k pm2 start src/index.js

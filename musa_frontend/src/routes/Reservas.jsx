@@ -302,15 +302,23 @@ function Reservas() {
                             </div>
                             <div className="modal-body">
                                 <div>
-                                    <select value={turnoData.formaDeCobro} onChange={e => setTurnoData(prev => ({ ...prev, formaDeCobro: e.target.value }))} name="formapago" id="formapago">
+                                    <select value={turnoData.formaDeCobro} onChange={e => {
+                                        if(e.target.value === 'EFECTIVO'){
+                                            setTurnoData(prev => ({ ...prev, formaDeCobro: e.target.value, facturado: false }));
+                                        } else if(e.target.value === 'DIGITAL') {
+                                            setTurnoData(prev => ({ ...prev, formaDeCobro: e.target.value, facturado: true }));
+                                        }
+                                    }} name="formapago" id="formapago">
                                         <option value="EFECTIVO">EFECTIVO</option>
                                         <option value="DIGITAL">DIGITAL</option>
                                     </select>
                                 </div>
-                                <div className="checkbox-turno">
-                                    <span>FACTURA</span>
-                                    <input onChange={e => setTurnoData(prev => ({ ...prev, facturado: e.target.checked }))} checked={turnoData.facturado} type="checkbox" />
-                                </div>
+                                {
+                                    turnoData.formaDeCobro === 'EFECTIVO' && <div className="checkbox-turno">
+                                        <span>FACTURA</span>
+                                        <input onChange={e => setTurnoData(prev => ({ ...prev, facturado: e.target.checked }))} checked={turnoData.facturado} type="checkbox" />
+                                    </div>
+                                }
                                 <div>
                                     <NumericFormat onValueChange={(e) => changeHandler(e.floatValue)} className='input-turno' prefix='$' value={turnoData.cobrado} thousandSeparator="." decimalSeparator=',' />
                                 </div>

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
 import { socket } from '../main';
 import { NumericFormat } from 'react-number-format';
 import DatalistInput from 'react-datalist-input';
 import moment from 'moment-timezone';
 
-function Caja() {
+import { IP } from '../main';
 
+function Caja() {
     const [operacion, setOperacion] = useState({
         descripcion: '',
         monto: 0,
@@ -16,16 +17,16 @@ function Caja() {
     const [nombres, setNombres] = useState([]);
     const [totales, setTotales] = useState({});
     const [operaciones, setOperaciones] = useState([]);
-
+    const [file, setFile] = useState(null);
+    const [otroDia, setOtroDia] = useState(false);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [fecha, setFecha] = useState(moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD'));
     const [search, setSearch] = useState("");
+    const fileInputRef = useRef(null);
 
     const fetchTotales = () => socket.emit('request-totales');
-
     const fetchNombres = () => socket.emit('request-nombres');
-
     const fetchOperaciones = (fecha, search, page) => socket.emit('request-operaciones', { fecha, search, page });
 
     const handlePageChange = (newPage) => {
@@ -85,101 +86,154 @@ function Caja() {
         setOperacion(prev => ({ ...prev, tipoOperacion: button }));
     };
 
-    const enviar = () => {
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
+    const enviar = async () => {
         if (!operacion.monto || operacion.monto === 0) {
-            alert('FALTA MONTO')
+            alert('FALTA MONTO');
             return;
         }
         if (!operacion.formaPago) {
-            alert('FALTA FORMA DE PAGO')
+            alert('FALTA FORMA DE PAGO');
             return;
         }
         if (!operacion.tipoOperacion) {
-            alert('FALTA TIPO DE OPERACION')
+            alert('FALTA TIPO DE OPERACION');
             return;
         }
-        socket.emit('guardar-operacion', operacion);
-        setOperacion({
-            descripcion: '',
-            monto: 0,
-            nombre: '',
-            formaPago: null,
-            tipoOperacion: null
-        });
+
+        const formDataToSend = new FormData();
+        for (const key in operacion) {
+            formDataToSend.append(key, operacion[key]);
+        }
+
+        if (file) {
+            formDataToSend.append('file', file);
+        }
+
+        try {
+            const response = await fetch(`${IP()}/upload_operacion`, {
+                method: 'POST',
+                body: formDataToSend,
+            });
+            const result = await response.json();
+            console.log('Resultado del servidor:', result);
+
+            if (result.status === 'error') {
+                alert(result.message);
+                return;
+            }
+
+            setOperacion({
+                descripcion: '',
+                monto: 0,
+                nombre: '',
+                formaPago: null,
+                tipoOperacion: null
+            });
+            setFile(null);
+            setOtroDia(false); // Resetea el estado de otroDia a false después de enviar
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        } catch (error) {
+            console.error('Error al enviar los datos:', error);
+        }
     };
 
     const handleChangeNumber = (value) => {
         setOperacion(prev => ({ ...prev, monto: value }));
     };
 
+    const borrarFile = (id) => {
+        if(id){
+            socket.emit('borrar-file-operacion', id);
+        }
+    };
+
     const editar = async (op) => {
         try {
-            // Intentamos obtener la hora desde la API
             const response = await fetch('http://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires');
             if (!response.ok) {
                 throw new Error('Fallo la API, usando la hora local');
             }
             const data = await response.json();
             const fechaArgentina = moment(data.datetime).format('YYYY-MM-DD');
-            // Comparamos la fecha de la operación con la fecha obtenida
-            if (op.fecha === fechaArgentina) {
-                setOperacion(op);
-            } else {
-                alert('NO SE PUEDE EDITAR OPERACIONES DE OTROS DIAS');
+            if (op.fecha !== fechaArgentina) {
+                setOtroDia(true);
             }
+            setOperacion(op);
         } catch (error) {
-            // Si la API falla, utilizamos la hora local
             const fechaLocal = moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD');
-            // Comparamos la fecha de la operación con la fecha local
-            if (op.fecha === fechaLocal) {
-                setOperacion(op);
-            } else {
-                alert('NO SE PUEDE EDITAR OPERACIONES DE OTROS DIAS');
+            if (op.fecha !== fechaLocal) {
+                setOtroDia(true);
             }
+            setOperacion(op);
         }
     };
 
     return (
         <div className="div-caja">
             <div className="inputs-caja">
-                <NumericFormat placeholder='MONTO' prefix='$' value={operacion.monto} thousandSeparator="." decimalSeparator=',' onValueChange={(e) => handleChangeNumber(e.floatValue)} />
+                <NumericFormat
+                    placeholder='MONTO'
+                    prefix='$'
+                    value={operacion.monto}
+                    thousandSeparator="."
+                    decimalSeparator=','
+                    onValueChange={(e) => handleChangeNumber(e.floatValue)}
+                    disabled={otroDia} // Deshabilitado si otroDia es true
+                />
                 <div className="botones-caja">
                     <button
                         onClick={() => handlePaymentButtonClick('EFECTIVO')}
                         className={operacion.formaPago === 'EFECTIVO' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         EFECTIVO
                     </button>
                     <button
                         onClick={() => handlePaymentButtonClick('DIGITAL')}
                         className={operacion.formaPago === 'DIGITAL' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         DIGITAL
                     </button>
                 </div>
-                <textarea value={operacion.descripcion} placeholder='DESCRIPCION' onChange={e => setOperacion(prev => ({ ...prev, descripcion: e.target.value }))}></textarea>
+                <textarea
+                    value={operacion.descripcion}
+                    placeholder='DESCRIPCION'
+                    onChange={e => setOperacion(prev => ({ ...prev, descripcion: e.target.value }))}
+                    disabled={otroDia} // Deshabilitado si otroDia es true
+                ></textarea>
                 <div className="botones-caja">
                     <button
                         onClick={() => handleTransactionButtonClick('APORTE')}
                         className={operacion.tipoOperacion === 'APORTE' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         APORTE
                     </button>
                     <button
                         onClick={() => handleTransactionButtonClick('RETIRO')}
                         className={operacion.tipoOperacion === 'RETIRO' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         RETIRO
                     </button>
                     <button
                         onClick={() => handleTransactionButtonClick('GASTO')}
                         className={operacion.tipoOperacion === 'GASTO' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         GASTO
                     </button>
                     <button
                         onClick={() => handleTransactionButtonClick('INGRESO')}
                         className={operacion.tipoOperacion === 'INGRESO' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         INGRESO
                     </button>
@@ -188,11 +242,26 @@ function Caja() {
                     <button
                         onClick={() => handleTransactionButtonClick('CIERRE DE CAJA')}
                         className={operacion.tipoOperacion === 'CIERRE DE CAJA' ? 'boton-activo' : ''}
+                        disabled={otroDia} // Deshabilitado si otroDia es true
                     >
                         CIERRE DE CAJA
                     </button>
                 </div>
-                <DatalistInput placeholder='NOMBRE' value={operacion.nombre} inputProps={{ value: operacion.nombre, onChange: e => setOperacion(prev => ({ ...prev, nombre: e.target.value })) }} onSelect={e => setOperacion(prev => ({ ...prev, nombre: e.value }))} items={nombres} />
+                <DatalistInput
+                    placeholder='NOMBRE'
+                    value={operacion.nombre}
+                    inputProps={{
+                        value: operacion.nombre,
+                        onChange: e => setOperacion(prev => ({ ...prev, nombre: e.target.value })),
+                        disabled: otroDia // Deshabilitado si otroDia es true
+                    }}
+                    onSelect={e => setOperacion(prev => ({ ...prev, nombre: e.value }))}
+                    items={nombres}
+                />
+                <div className="botones-caja">
+                    <input ref={fileInputRef} type="file" onChange={handleFileChange} />
+                    <button onClick={() => borrarFile(operacion._id)}>X</button>
+                </div>
                 <div className="botones-caja">
                     <button onClick={() => enviar()}>ENVIAR</button>
                 </div>
@@ -239,12 +308,28 @@ function Caja() {
                             <th>FORMA DE PAGO</th>
                             <th>MONTO</th>
                             <th>DESCRIPCION</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            operaciones?.map((operacion, index) => <tr key={index}>
-                                <td onClick={() => editar(operacion)} className='editar caja-editar'><i className="bi bi-pencil-square"></i></td>
+                            operaciones?.map((operacion, index) => <tr
+                                className="tr-cursor-pointer"
+                                onClick={() => {
+                                    if (operacion.filePath) {
+                                        window.open(`${IP()}/${operacion.filePath}`);
+                                    }
+                                }}
+                                key={index}>
+                                <td
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Evita que el clic en el botón de edición abra el archivo
+                                        editar(operacion);
+                                    }}
+                                    className='editar caja-editar'
+                                >
+                                    <i className="bi bi-pencil-square"></i>
+                                </td>
                                 <td>{new Date(operacion.createdAt).toLocaleString('es-AR', {
                                     year: 'numeric',
                                     month: '2-digit',
@@ -258,12 +343,21 @@ function Caja() {
                                 <td>{operacion.formaPago}</td>
                                 <td style={{ color: operacion.monto < 0 ? 'red' : '' }}><NumericFormat prefix='$' displayType='text' value={operacion.monto} thousandSeparator="." decimalSeparator=',' /></td>
                                 <td>{operacion.descripcion}</td>
+                                <td>
+                                    {operacion.filePath ? (
+                                        operacion.filePath.endsWith('.pdf') ? (
+                                            <i className="bi bi-filetype-pdf icono-caja"></i>
+                                        ) : (
+                                            <i className="bi bi-file-earmark-image icono-caja"></i>
+                                        )
+                                    ) : null}
+                                </td>
                             </tr>)
                         }
                     </tbody>
                 </table>
             </div>
-        </div >
+        </div>
     )
 }
 

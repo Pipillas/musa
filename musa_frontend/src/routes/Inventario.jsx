@@ -90,14 +90,14 @@ function Inventario() {
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
+        const removeAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Remueve acentos
         if (name === "foto") {
             setFormData({
                 ...formData,
                 foto: files[0], // Guarda el archivo seleccionado en el estado
             });
         } else {
-            const numericFields = ["codigo", "year", "cantidad"];
-
+            const numericFields = ["codigo", "year", "cantidad"];    
             if (numericFields.includes(name)) {
                 const numericValue = value.replace(/[^0-9]/g, "");
                 setFormData({
@@ -105,13 +105,13 @@ function Inventario() {
                     [name]: numericValue,
                 });
             } else if (name === "descripcion") {
-                const capitalizedValue = value.replace(/(?:^|\.\s+)(\w)/g, (match) => match.toUpperCase());
+                const capitalizedValue = removeAccents(value).replace(/(?:^|\.\s+)(\w)/g, (match) => match.toUpperCase());
                 setFormData({
                     ...formData,
                     [name]: capitalizedValue,
                 });
             } else {
-                const capitalizedValue = value.replace(/\b\w+/g, (word) =>
+                const capitalizedValue = removeAccents(value).replace(/\b\w+/g, (word) =>
                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                 );
                 setFormData({

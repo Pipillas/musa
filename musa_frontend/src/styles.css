@@ -978,6 +978,14 @@ input[type="checkbox"] {
     font-size: 24px;
 }
 
+.icono-caja{
+    font-size:25px;
+}
+
+.tr-cursor-pointer{
+    cursor: pointer;
+}
+
 @media (max-width: 768px) {
     .modal-content {
         flex-direction: column;

@@ -6,6 +6,7 @@ const operacion = new mongoose.Schema({
     descripcion: { type: String },
     nombre: { type: String },
     monto: { type: Number },
+    filePath: { type: String },
     fecha: { type: String }
 }, { timestamps: true });
 

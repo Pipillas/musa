@@ -29,8 +29,6 @@ const io = socketIo(server, {
     }
 });
 
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 // Conectar a MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/inventario')
     .then(() => console.log('Conectado a MongoDB'))
@@ -53,6 +51,19 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
     }
 });
+
+const comprobantesStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'comprobantes/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
+    }
+});
+
+const uploadComprobante = multer({ storage: comprobantesStorage, limits: { fileSize: 50 * 1024 * 1024 } });
+
 const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 app.use(express.json());
@@ -65,13 +76,52 @@ app.use('/.well-known/pki-validation/', express.static(path.join(__dirname, '.we
 
 // Sirviendo la carpeta 'uploads' de forma estática
 app.use('/uploads', express.static('uploads'));
-
+app.use('/comprobantes', express.static('comprobantes'));
 app.use('/facturas', express.static('src/facturas'));
 
 // Servir la aplicación principal (index.html) para cualquier ruta
 app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
+
+app.post('/upload_operacion', uploadComprobante.single('file'), async (req, res) => {
+    const operacionData = req.body;
+    const file = req.file;
+
+    try {
+        // Agregar la fecha actual a la operación si es una nueva (sin _id)
+        if (!operacionData._id) {
+            operacionData.fecha = moment(new Date()).tz("America/Argentina/Buenos_Aires").format('YYYY-MM-DD');
+        }
+
+        // Si estamos editando (operacionData._id existe) y no hay un archivo nuevo, conservar el filePath existente
+        if (operacionData._id && !file) {
+            const existingOperacion = await Operacion.findById(operacionData._id);
+            if (existingOperacion) {
+                operacionData.filePath = existingOperacion.filePath; // Conservar el filePath existente
+            }
+        } else if (file) {
+            // Si hay un archivo nuevo, actualizar filePath con el nuevo archivo
+            operacionData.filePath = file.path;
+        }
+
+        // Crear o actualizar la operación
+        if (operacionData._id) {
+            await Operacion.findByIdAndUpdate(operacionData._id, operacionData);
+        } else {
+            await Operacion.create(operacionData);
+        }
+
+        // Emitir cambios a todos los clientes conectados
+        io.emit('cambios');
+
+        res.json({ status: 'ok', message: 'Operación guardada correctamente' });
+    } catch (error) {
+        console.error('Error al guardar la operación:', error);
+        res.status(500).json({ status: 'error', message: 'Error al guardar la operación' });
+    }
+});
+
 
 app.post('/upload', upload.single('foto'), async (req, res) => {
     const formData = req.body;
@@ -98,6 +148,9 @@ app.post('/upload', upload.single('foto'), async (req, res) => {
             }
             await Product.findByIdAndUpdate(formData._id, product);
         } else {
+            if (!formData.cantidad) {
+                formData.cantidad = 0;
+            }
             const newProduct = new Product({
                 codigo: formData.codigo,
                 bodega: formData.bodega,
@@ -700,6 +753,7 @@ io.on('connection', (socket) => {
         socket.emit('response-nombres', nombres);
     });
     socket.on('guardar-operacion', async (operacion) => {
+        console.log(operacion);
         if (operacion._id) {
             await Operacion.findByIdAndUpdate(operacion._id, operacion);
         } else {
@@ -939,6 +993,10 @@ io.on('connection', (socket) => {
             console.error('Error al obtener la cantidad total:', error);
             socket.emit('error-total-cantidad-productos', 'Hubo un error al calcular la cantidad total');
         }
+    });
+    socket.on('borrar-file-operacion', async (id) => {
+        await Operacion.findByIdAndUpdate(id, { filePath: null });
+        io.emit('cambios');
     });
 });
 

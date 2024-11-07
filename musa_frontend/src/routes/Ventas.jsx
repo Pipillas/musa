@@ -109,8 +109,7 @@ function Ventas() {
                     {
                         ventas?.length > 0 ? (
                             ventas.map((venta, index) => (
-                                <tr onClick={() => {
-                                    console.log('asd');
+                                <tr className="tr-cursor-pointer" onClick={() => {
                                     if (venta.numeroFactura) {
                                         window.open(`${IP()}/facturas/${venta.stringNumeroFactura}.pdf`);
                                     } else {
