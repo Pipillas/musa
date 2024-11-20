@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const turno = new mongoose.Schema({
+const turno = new mongoose.Schema(
+  {
     fecha: { type: String },
     turno: { type: String },
     nombre: { type: String },
@@ -8,9 +9,12 @@ const turno = new mongoose.Schema({
     observaciones: { type: String },
     cobrado: { type: Number },
     formaDeCobro: { type: String },
+    total: { type: Number },
     facturado: { type: Boolean },
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
-const Turno = mongoose.model('Turno', turno);
+const Turno = mongoose.model("Turno", turno);
 
 module.exports = Turno;

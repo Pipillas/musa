@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const venta = new mongoose.Schema({
+const venta = new mongoose.Schema(
+  {
     productos: { type: Array },
     tipoFactura: { type: String },
     numeroFactura: { type: String },
@@ -16,9 +17,13 @@ const venta = new mongoose.Schema({
     notaCredito: { type: Boolean },
     fecha: { type: String },
     idTurno: { type: String },
-    descuento: { type: Number }
-}, { timestamps: true });
+    descuento: { type: Number },
+    detalle: { type: String },
+    numeroVenta: { type: Number },
+  },
+  { timestamps: true }
+);
 
-const Product = mongoose.model('Venta', venta);
+const Product = mongoose.model("Venta", venta);
 
 module.exports = Product;

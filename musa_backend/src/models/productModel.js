@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema({
     origen: { type: String },
     venta: { type: String },
     cantidad: { type: Number },
+    posicion: { type: String },
     descripcion: { type: String },
     foto: { type: String },
     favorito: { type: Boolean },
