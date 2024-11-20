@@ -1004,27 +1004,37 @@ io.on("connection", (socket) => {
     }
     io.emit("cambios");
   });
-  socket.on("request-turnos", async (search, page) => {
+  socket.on("request-turnos", async (todos, search, page) => {
     const pageSize = 50; // Definir tamaño de página
     const pageNumber = page || 1;
     let filter = {};
     // Si hay un término de búsqueda, creamos un regex para aplicarlo a los campos
+
     if (search) {
       const searchRegex = { $regex: search, $options: "i" }; // 'i' para ignorar mayúsculas/minúsculas
       filter.$or = [{ nombre: searchRegex }, { fecha: searchRegex }];
     }
+
+    // Filtrar por turnos a partir de hoy (solo considerando la fecha sin la hora)
+    if (!todos) {
+      const today = moment().startOf("day").format("YYYY-MM-DD"); // Obtener la fecha de hoy sin la parte de la hora
+      filter.fecha = { $gte: today }; // Filtrar turnos a partir de hoy, ignorando la hora
+    }
+
     try {
       // Realizar la búsqueda con paginación
       const turnos = await Turno.find(filter)
-        .sort({ createdAt: -1 })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize);
+        .sort({ createdAt: -1 }) // Ordenar por fecha de creación
+        .skip((pageNumber - 1) * pageSize) // Paginación
+        .limit(pageSize); // Limitar el número de resultados por página
+
       // Contar el número total de documentos que coinciden con el filtro
       const totalTurnos = await Turno.countDocuments(filter);
       let totalPages = Math.ceil(totalTurnos / pageSize);
       if (totalPages === 0) {
         totalPages = 1;
       }
+
       // Emitir los resultados al cliente
       socket.emit("response-turnos", {
         turnos,
@@ -1035,6 +1045,7 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "Error retrieving turnos", error });
     }
   });
+
   socket.on("request-fechas-turnos", async (turno) => {
     const turnosOcupados = await Turno.find({ turno });
     let dummyArr = [];

@@ -97,8 +97,8 @@ function Reservas() {
     socket.emit("cambiar-cantidad-color", color, cantidad);
   };
 
-  const fetchTurnos = (t, s, p) => {
-    socket.emit("request-turnos", s, p);
+  const fetchTurnos = (tod, t, s, p) => {
+    socket.emit("request-turnos", tod, s, p);
     socket.emit("request-fechas-turnos", t);
     socket.emit("request-cantidad");
   };
@@ -148,26 +148,19 @@ function Reservas() {
   };
 
   useEffect(() => {
-    socket.on("cambios", () => fetchTurnos(turno.turno, search, page));
+    socket.on("cambios", () => fetchTurnos(todos, turno.turno, search, page));
     socket.on("response-fechas-turnos", (to) => {
       setTurnosOcupados(to);
     });
     socket.on("response-turnos", (data) => {
-      const today = moment().startOf("day");
-      const turnosFiltrados = todos
-        ? data.turnos
-        : data.turnos.filter((t) =>
-            moment(t.fecha.split("T")[0]).isSameOrAfter(today)
-          );
-
-      setTurnos(turnosFiltrados);
-      const total = Math.max(1, Math.ceil(turnosFiltrados.length / 50));
-      setTotalPages(total);
+      // Recibir los turnos filtrados y paginados desde el servidor
+      setTurnos(data.turnos);
+      setTotalPages(data.totalPages); // Ya se calcula en el servidor
     });
     socket.on("response-cantidad", (cant) => {
       setCantidad(cant);
     });
-    fetchTurnos(turno.turno, search, page);
+    fetchTurnos(todos, turno.turno, search, page);
     return () => {
       socket.off("cambios");
       socket.off("response-fechas-turnos");
