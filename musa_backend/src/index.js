@@ -939,28 +939,31 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "Error retrieving operations", error });
     }
   });
-  socket.on("request-tipo-operacion", async (tipo) => {
-    const operaciones = await Operacion.find({ tipoOperacion: tipo }).sort({
-      createdAt: -1,
-    });
-    // Crear un mapa para agrupar las operaciones por nombre
-    let operacionesPorNombre = {};
-    operaciones.forEach((operacion) => {
-      if (operacionesPorNombre[operacion.nombre]) {
-        // Si ya existe el nombre, sumamos el monto
-        operacionesPorNombre[operacion.nombre].monto += operacion.monto;
-      } else {
-        // Si no existe el nombre, lo inicializamos
-        operacionesPorNombre[operacion.nombre] = {
-          ...operacion._doc, // Copiamos todos los datos de la operación actual
-          monto: operacion.monto, // Inicializamos el monto con el valor actual
-        };
-      }
-    });
-    // Convertir el mapa en un array de objetos
-    let operacionesAgrupadas = Object.values(operacionesPorNombre);
-    // Emitir el array procesado
-    socket.emit("response-tipo-operacion", operacionesAgrupadas);
+  socket.on("request-tipo-operacion", async (tipo, mes) => {
+    try {
+      const operaciones = await Operacion.find({
+        tipoOperacion: tipo,
+        fecha: { $regex: `^${mes}` }, // Filtrar operaciones por mes
+      }).sort({ createdAt: -1 });
+
+      let operacionesPorNombre = {};
+      operaciones.forEach((operacion) => {
+        if (operacionesPorNombre[operacion.nombre]) {
+          operacionesPorNombre[operacion.nombre].monto += operacion.monto;
+        } else {
+          operacionesPorNombre[operacion.nombre] = {
+            ...operacion._doc,
+            monto: operacion.monto,
+          };
+        }
+      });
+
+      const operacionesAgrupadas = Object.values(operacionesPorNombre);
+      socket.emit("response-tipo-operacion", operacionesAgrupadas);
+    } catch (error) {
+      console.error("Error al obtener operaciones:", error);
+      socket.emit("error", { message: "Error al obtener operaciones." });
+    }
   });
   socket.on("request-facturado", async (mes) => {
     try {
