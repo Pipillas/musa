@@ -257,12 +257,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${new Date()
-        .getSeconds()
-        .toString()
-        .padStart(2, "0")}`,
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:${new Date()
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -286,12 +286,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${new Date()
-        .getSeconds()
-        .toString()
-        .padStart(2, "0")}`,
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:${new Date()
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -431,31 +431,36 @@ io.on("connection", (socket) => {
       search = "",
       isCarrito = false,
       isFavorito = false,
-      ordenado = false,
+      ordenadoCantidad = false,
+      ordenadoCepa = false,
     }) => {
       const pageSize = 50;
       try {
         const query = {
           ...(search
             ? {
-                $or: [
-                  { codigo: new RegExp(search, "i") },
-                  { nombre: new RegExp(search, "i") },
-                  { bodega: new RegExp(search, "i") },
-                  { cepa: new RegExp(search, "i") },
-                  { origen: new RegExp(search, "i") },
-                ],
-              }
+              $or: [
+                { codigo: new RegExp(search, "i") },
+                { nombre: new RegExp(search, "i") },
+                { bodega: new RegExp(search, "i") },
+                { cepa: new RegExp(search, "i") },
+                { origen: new RegExp(search, "i") },
+              ],
+            }
             : {}),
           ...(isCarrito ? { carrito: true } : {}),
           ...(isFavorito ? { favorito: true } : {}),
         };
 
-        // Determinar el orden de los productos según el parámetro `ordenado`
-        const sortOption = ordenado ? { cantidad: 1 } : { _id: -1 };
+        // Determinar el orden de los productos según los criterios seleccionados
+        const sortOption = {
+          ...(ordenadoCepa && { cepa: 1 }),
+          ...(ordenadoCantidad && { cantidad: -1 }),
+          ...(!ordenadoCepa && !ordenadoCantidad && { _id: -1 }),
+        };
 
         const productos = await Product.find(query)
-          .sort(sortOption) // Ordena por el más reciente
+          .sort(sortOption) // Ordena según la configuración
           .skip((page - 1) * pageSize)
           .limit(pageSize);
 
