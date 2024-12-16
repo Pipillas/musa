@@ -353,8 +353,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.fecha}
@@ -364,8 +364,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.turno}
@@ -375,8 +375,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.nombre}
@@ -386,8 +386,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.cantidad}
@@ -397,8 +397,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.observaciones}
@@ -408,8 +408,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {!turno.total ? (
@@ -429,8 +429,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {!turno.cobrado ? (
@@ -451,8 +451,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-pencil-square"></i>
@@ -463,8 +463,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-cash-coin"></i>
@@ -475,8 +475,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-trash3-fill"></i>

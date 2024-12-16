@@ -193,7 +193,7 @@ tr:nth-child(even) td {
 
 tr:hover td {
   /* Color de fondo cuando pasas el mouse por encima */
-  cursor:pointer;
+  cursor: pointer;
 }
 
 .editar {
@@ -546,7 +546,7 @@ tr:hover td {
   height: 100%;
 }
 
-.resumen-section > div {
+.resumen-section>div {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1009,7 +1009,7 @@ input[type="checkbox"] {
   border-bottom: 1px solid black;
 }
 
-.proximos{
+.proximos {
   padding: 5px;
   border: none;
   background-color: transparent;
@@ -1036,12 +1036,25 @@ tr td.fila-verde {
   background-color: rgba(0, 255, 0, 0.575);
 }
 
-.th-cantidad{
-  text-wrap:nowrap;
+.th-cantidad {
+  text-wrap: nowrap;
 }
 
-.th-cantidad:hover{
-  cursor:pointer;
+.th-cantidad:hover {
+  cursor: pointer;
+}
+
+.estadisticas {
+  display: flex;
+  padding: 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.totales {
+  display: flex;
+  gap: 10px;
 }
 
 @media (max-width: 768px) {

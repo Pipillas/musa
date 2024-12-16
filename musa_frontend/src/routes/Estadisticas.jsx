@@ -39,16 +39,30 @@ function Estadisticas() {
 
     return (
         <div className="table-estadisticas">
-            <div>
+            <div className="estadisticas">
                 <input
                     type="month"
                     id="mes"
                     value={mes}
                     onChange={e => setMes(e.target.value)}
                 />
-                {totalFacturado}
-                -
-                {totalNoFacturado}
+                <div className="totales">
+                    <NumericFormat
+                        prefix='FACTURADO: $'
+                        displayType='text'
+                        value={totalFacturado}
+                        thousandSeparator="."
+                        decimalSeparator=','
+                    />
+                    /
+                    <NumericFormat
+                        prefix='NEGRONI: $'
+                        displayType='text'
+                        value={totalNoFacturado}
+                        thousandSeparator="."
+                        decimalSeparator=','
+                    />
+                </div>
             </div>
             <table>
                 <thead>
