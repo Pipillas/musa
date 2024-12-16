@@ -36,6 +36,9 @@ function Reservas() {
   const [openModal, setOpenModal] = useState(false);
   const [todos, setTodos] = useState(false);
 
+  const [sumaCantidad, setSumaCantidad] = useState(0);
+  const [sumaMonto, setSumaMonto] = useState(0);
+
   const handleKeyDown = (e) => {
     if (e.target.name !== "observaciones") {
       if (e.key === "Enter") {
@@ -153,9 +156,18 @@ function Reservas() {
       setTurnosOcupados(to);
     });
     socket.on("response-turnos", (data) => {
-      // Recibir los turnos filtrados y paginados desde el servidor
       setTurnos(data.turnos);
-      setTotalPages(data.totalPages); // Ya se calcula en el servidor
+      setTotalPages(data.totalPages);
+      const totalCantidad = data.turnos.reduce(
+        (sum, turno) => sum + (parseInt(turno.cantidad) || 0),
+        0
+      );
+      const totalMonto = data.turnos.reduce(
+        (sum, turno) => sum + (parseFloat(turno.total) || 0),
+        0
+      );
+      setSumaCantidad(totalCantidad);
+      setSumaMonto(totalMonto);
     });
     socket.on("response-cantidad", (cant) => {
       setCantidad(cant);
@@ -319,9 +331,9 @@ function Reservas() {
                 <th>Fecha</th>
                 <th>Turno</th>
                 <th>Nombre</th>
-                <th>Cantidad</th>
+                <th>Cantidad (Total: {sumaCantidad})</th>
                 <th>Observaciones</th>
-                <th>Monto a pagar</th>
+                <th>Monto a pagar (Total: ${sumaMonto.toLocaleString("es-AR")})</th>
                 <th>Cobrado</th>
                 <th></th>
                 <th></th>
@@ -336,8 +348,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.fecha}
@@ -347,8 +359,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.turno}
@@ -358,8 +370,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.nombre}
@@ -369,8 +381,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.cantidad}
@@ -380,8 +392,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {turno.observaciones}
@@ -391,8 +403,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {!turno.total ? (
@@ -412,8 +424,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde"
                         : turno.cobrado
-                        ? "fila-amarilla"
-                        : ""
+                          ? "fila-amarilla"
+                          : ""
                     }
                   >
                     {!turno.cobrado ? (
@@ -434,8 +446,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-pencil-square"></i>
@@ -446,8 +458,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-cash-coin"></i>
@@ -458,8 +470,8 @@ function Reservas() {
                       turno.cobrado === turno.total
                         ? "fila-verde editar"
                         : turno.cobrado
-                        ? "fila-amarilla editar"
-                        : "editar"
+                          ? "fila-amarilla editar"
+                          : "editar"
                     }
                   >
                     <i className="bi bi-trash3-fill"></i>
