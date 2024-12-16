@@ -1114,6 +1114,7 @@ io.on("connection", (socket) => {
           .tz("America/Argentina/Buenos_Aires")
           .format("YYYY-MM-DD"),
         idTurno: turno._id,
+        descuento: 0,
       };
       await Venta.create(venta);
     } else {
@@ -1125,6 +1126,7 @@ io.on("connection", (socket) => {
         fecha: moment(new Date())
           .tz("America/Argentina/Buenos_Aires")
           .format("YYYY-MM-DD"),
+        descuento: 0,
       });
     }
     io.emit("cambios");
