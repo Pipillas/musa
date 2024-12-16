@@ -257,12 +257,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${new Date()
-        .getSeconds()
-        .toString()
-        .padStart(2, "0")}`,
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:${new Date()
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -286,12 +286,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${new Date()
-        .getSeconds()
-        .toString()
-        .padStart(2, "0")}`,
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:${new Date()
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -439,14 +439,14 @@ io.on("connection", (socket) => {
         const query = {
           ...(search
             ? {
-                $or: [
-                  { codigo: new RegExp(search, "i") },
-                  { nombre: new RegExp(search, "i") },
-                  { bodega: new RegExp(search, "i") },
-                  { cepa: new RegExp(search, "i") },
-                  { origen: new RegExp(search, "i") },
-                ],
-              }
+              $or: [
+                { codigo: new RegExp(search, "i") },
+                { nombre: new RegExp(search, "i") },
+                { bodega: new RegExp(search, "i") },
+                { cepa: new RegExp(search, "i") },
+                { origen: new RegExp(search, "i") },
+              ],
+            }
             : {}),
           ...(isCarrito ? { carrito: true } : {}),
           ...(isFavorito ? { favorito: true } : {}),

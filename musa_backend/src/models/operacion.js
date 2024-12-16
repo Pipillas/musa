@@ -7,6 +7,7 @@ const operacion = new mongoose.Schema({
     nombre: { type: String },
     monto: { type: Number },
     filePath: { type: String },
+    beneficiario: { type: String },
     fecha: { type: String }
 }, { timestamps: true });
 

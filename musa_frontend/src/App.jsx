@@ -7,6 +7,7 @@ import Estadisticas from './routes/Estadisticas';
 import Carrito from "./routes/Carrito";
 import Ventas from "./routes/Ventas";
 import Caja from './routes/Caja';
+import Flujos from './routes/Flujos';
 
 import { socket } from "./main";
 import Reservas from './routes/Reservas';
@@ -79,6 +80,7 @@ function App() {
         <Route path="/caja" element={<Caja />} />
         <Route path="/estadisticas" element={<Estadisticas />} />
         <Route path="/reservas" element={<Reservas />} />
+        <Route path="/flujos" element={<Flujos />} />
       </Routes>
     </Router>
   );
