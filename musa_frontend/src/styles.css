@@ -1059,6 +1059,7 @@ tr td.fila-verde {
 
 .container-flujos {
   display: flex;
+  align-items: self-start;
 }
 
 .formulario-fujos {
@@ -1088,6 +1089,10 @@ tr td.fila-verde {
 .boton-flujos {
   width: 250px;
   border: none;
+}
+
+.table-flujos{
+  width:100%;
 }
 
 @media (max-width: 768px) {

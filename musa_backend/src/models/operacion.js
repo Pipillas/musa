@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const operacion = new mongoose.Schema({
+const operacion = new mongoose.Schema(
+  {
     tipoOperacion: { type: String },
     formaPago: { type: String },
     descripcion: { type: String },
@@ -8,9 +9,11 @@ const operacion = new mongoose.Schema({
     monto: { type: Number },
     filePath: { type: String },
     beneficiario: { type: String },
-    fecha: { type: String }
-}, { timestamps: true });
+    fecha: { type: String },
+  },
+  { timestamps: true }
+);
 
-const Product = mongoose.model('Operacion', operacion);
+const Product = mongoose.model("Operacion", operacion);
 
 module.exports = Product;

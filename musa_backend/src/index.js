@@ -11,6 +11,7 @@ const Product = require("./models/productModel");
 const Venta = require("./models/venta");
 const Operacion = require("./models/operacion");
 const Turno = require("./models/turno");
+const Flujo = require("./models/flujo");
 
 const AfipService = require("./AfipService");
 const afipService = new AfipService({ CUIT: 20418588897 });
@@ -95,6 +96,52 @@ app.use("/facturas", express.static("src/facturas"));
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
+
+app.post(
+  "/upload_flujo",
+  uploadComprobante.single("file"),
+  async (req, res) => {
+    const operacionData = req.body;
+    const file = req.file;
+
+    try {
+      // Agregar la fecha actual a la operación si es una nueva (sin _id)
+      if (!operacionData._id) {
+        operacionData.fecha = moment(new Date())
+          .tz("America/Argentina/Buenos_Aires")
+          .format("YYYY-MM-DD");
+      }
+
+      // Si estamos editando (operacionData._id existe) y no hay un archivo nuevo, conservar el filePath existente
+      if (operacionData._id && !file) {
+        const existingOperacion = await Flujo.findById(operacionData._id);
+        if (existingOperacion) {
+          operacionData.filePath = existingOperacion.filePath; // Conservar el filePath existente
+        }
+      } else if (file) {
+        // Si hay un archivo nuevo, actualizar filePath con el nuevo archivo
+        operacionData.filePath = file.path;
+      }
+
+      // Crear o actualizar la operación
+      if (operacionData._id) {
+        await Flujo.findByIdAndUpdate(operacionData._id, operacionData);
+      } else {
+        await Flujo.create(operacionData);
+      }
+
+      // Emitir cambios a todos los clientes conectados
+      io.emit("cambios");
+
+      res.json({ status: "ok", message: "Operación guardada correctamente" });
+    } catch (error) {
+      console.error("Error al guardar la operación:", error);
+      res
+        .status(500)
+        .json({ status: "error", message: "Error al guardar la operación" });
+    }
+  }
+);
 
 app.post(
   "/upload_operacion",
@@ -257,12 +304,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:${new Date()
-            .getSeconds()
-            .toString()
-            .padStart(2, "0")}`,
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}:${new Date()
+        .getSeconds()
+        .toString()
+        .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -286,12 +333,12 @@ async function imprimirTicket(data) {
         .getHours()
         .toString()
         .padStart(2, "0")}:${new Date()
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:${new Date()
-            .getSeconds()
-            .toString()
-            .padStart(2, "0")}`,
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}:${new Date()
+        .getSeconds()
+        .toString()
+        .padStart(2, "0")}`,
       { align: "center" }
     );
     doc.text("---------------------------", { align: "center" });
@@ -439,21 +486,18 @@ io.on("connection", (socket) => {
         const query = {
           ...(search
             ? {
-              $or: [
-                { codigo: new RegExp(search, "i") },
-                { nombre: new RegExp(search, "i") },
-                { bodega: new RegExp(search, "i") },
-                { cepa: new RegExp(search, "i") },
-                { origen: new RegExp(search, "i") },
-              ],
-            }
+                $or: [
+                  { codigo: new RegExp(search, "i") },
+                  { nombre: new RegExp(search, "i") },
+                  { bodega: new RegExp(search, "i") },
+                  { cepa: new RegExp(search, "i") },
+                  { origen: new RegExp(search, "i") },
+                ],
+              }
             : {}),
           ...(isCarrito ? { carrito: true } : {}),
           ...(isFavorito ? { favorito: true } : {}),
         };
-
-        console.log(ordenadoCepa);
-        console.log(ordenadoCantidad);
 
         // Determinar el orden de los productos según los criterios seleccionados
         const sortOption = {
@@ -1056,7 +1100,6 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "Error retrieving turnos", error });
     }
   });
-
   socket.on("request-fechas-turnos", async (turno) => {
     const turnosOcupados = await Turno.find({ turno });
     let dummyArr = [];
@@ -1184,6 +1227,37 @@ io.on("connection", (socket) => {
   socket.on("borrar-file-operacion", async (id) => {
     await Operacion.findByIdAndUpdate(id, { filePath: null });
     io.emit("cambios");
+  });
+  socket.on("request-flujos", async (ordenadoFechaPago, todos) => {
+    try {
+      let filter = {};
+
+      // Si todos es falso, filtramos los flujos a partir de hoy
+      if (!todos) {
+        const today = moment().startOf("day").format("YYYY-MM-DD"); // Obtener la fecha de hoy sin la parte de la hora
+        filter.fechaPago = { $gte: today }; // Filtrar flujos a partir de hoy, ignorando la hora
+      }
+
+      let sortCriteria;
+
+      // Si ordenadoFechaPago es true, ordenamos por fechaPago de menor a mayor
+      if (ordenadoFechaPago) {
+        sortCriteria = { fechaPago: 1 }; // Orden ascendente por fechaPago
+      } else {
+        // Si es false, ordenamos por createdAt de forma descendente
+        sortCriteria = { createdAt: -1 }; // Orden descendente por createdAt
+      }
+
+      const flujos = await Flujo.find(filter)
+        .sort(sortCriteria) // Usamos el criterio de ordenación dinámico
+        .exec();
+
+      // Emitimos la respuesta con los flujos ordenados
+      socket.emit("response-flujos", flujos);
+    } catch (error) {
+      console.error("Error al obtener flujos:", error);
+      socket.emit("response-flujos", []); // Enviar un array vacío en caso de error
+    }
   });
 });
 
